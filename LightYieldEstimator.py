@@ -12,7 +12,8 @@ module_description = \
 
 import ROOT
 import sys
-sys.path.insert(0, '/home/daq/tracker/analysis')
+#sys.path.insert(0, '/home/ed/tracker/analysis')
+sys.path.insert(0, '/home/ed/MICE/tracker/analysis/')
 from TrDAQReader import TrDAQRead
 import numpy
 import math
@@ -21,6 +22,9 @@ import math
 cmp_tol = 1E-6
 
 spectrum = ROOT.TSpectrum()
+#spectrum.SetResolution(10) # does not seem to help
+
+mode = "New"
 
 class LightYieldEstimator:
     """
@@ -39,9 +43,14 @@ class LightYieldEstimator:
     pe = 0.
     
     ####################################################################
-    def __init__(self):
+    #def __init__(self):
+    #    self.reset()
+    #    #self.spectrum = ROOT.TSpectrum()
+        
+    def __init__(self, Map=None):
         self.reset()
-        #self.spectrum = ROOT.TSpectrum()
+        if not (Map is None):
+            self.loadMap(Map)
         
     ####################################################################  
     def reset(self):
@@ -62,7 +71,7 @@ class LightYieldEstimator:
         
         
     ####################################################################
-    def process(self,channel_histogram, ledLYE=None):
+    def process(self, channel_histogram, ledLYE=None):
         """
         Process a histogram to locate each of the photo peaks and
         then use this to estimate stuff:
@@ -70,11 +79,15 @@ class LightYieldEstimator:
         self.reset();        
         ch = channel_histogram
         
+        # Measure mean and RMS values:
+        self.RMS = channel_histogram.GetRMS()
+        self.Mean = channel_histogram.GetMean()
+        
         # Check entries for empty histogram:
         if( ch.GetEntries() == 0):
             print ("NoData Detected.")
             self.ChannelState = "NoData"
-            return
+            return     
         
         # If the max bin is set, then the channel is probably in beakdown:
         if self.detectBreakdown(ch):
@@ -85,7 +98,8 @@ class LightYieldEstimator:
         # Using a ROOT TSpectrum, find the PE peaks in this channel's
         # ADC distribution, then store the positions of the peaks in self.Peaks
         # 2 = minimum peak sigma, 0.0025  = minimum min:max peak height ratio - see TSpectrum
-        nPeaks = spectrum.Search(ch,2,"", 0.0025 );
+        nPeaks = spectrum.Search(ch, 1.95,"", 0.005 )
+        #nPeaks = spectrum.Search(ch, 1.6,"nobackground,noMarkov", 0.001 )
         
         # If one peaks was found, then its probable that things were under biased..
         if (nPeaks == 0):
@@ -101,6 +115,7 @@ class LightYieldEstimator:
         self.Peaks.sort()
         
         if (nPeaks == 1):
+            #self.darkcounts = self.estimateDarkCount(ch)
             self.ChannelState = "NoPEPeaks"
             if (ledLYE is None):
                 return
@@ -123,11 +138,14 @@ class LightYieldEstimator:
             self.Peaks = ledLYE.Peaks
         else:
             # Estimate pedastools, then fit (not needed):
-            #self.gain = self.gainEstimator()      
+            self.gain = self.gainEstimator()      
             # Fit the pedastool peaks:     
-            pedfit = self.fitPedastroolSinges(ch)
-            self.Peaks[0] = pedfit[1]
-            self.Peaks[1] = pedfit[4]
+            #pedfit = self.fitPedastroolSinges(ch)
+            
+            # Commented pedfit results, seem to be wrong!
+            #self.Peaks[0] = pedfit[1]
+            #self.Peaks[1] = pedfit[4]
+            
             # Repeat gain measurement with improved
             # peak estimation.
             self.gain = self.gainEstimator()
@@ -137,6 +155,7 @@ class LightYieldEstimator:
         self.ChannelState = "PEPeaks"
         # Calculate Dark Count:
         self.darkcounts = self.getDarkCount(ch)
+        #self.darkcounts = self.estimateDarkCount(ch)
         #print ("Gain = %.3f"%self.gain)
         
         # Estimate the average npe:
@@ -198,16 +217,19 @@ class LightYieldEstimator:
             fitFunction.FixParameter(4,peaks[1])
         else:
             fitFunction.SetParameter(1,peaks[0])
-            fitFunction.SetParLimits(1, peaks[0] - (self.gain/2.0) , peaks[0] + (self.gain/2.0))
+            fitFunction.SetParLimits(1, peaks[0] - (self.gain) , peaks[0] + (self.gain))
             fitFunction.SetParameter(4,peaks[1])
-            fitFunction.SetParLimits(4, peaks[1] - (self.gain/2.0) , peaks[1] + (self.gain/2.0))
+            fitFunction.SetParLimits(4, peaks[1] - (self.gain) , peaks[1] + (self.gain))
         
         fitFunction.SetParameter(2,2.0)
         fitFunction.SetParLimits(2, 0.2 , 3.0)
         fitFunction.SetParameter(5,2.0)
         fitFunction.SetParLimits(5, 0.2 , 3.0)
-        hist.Fit(fitFunction,"QN")
+        #hist.Fit(fitFunction,"QN")
+        hist.Fit(fitFunction,"")
         
+        self.PedSinglesParams = [fitFunction.GetParameter(i) for i in range(6)]\
+                + [fitFunction.GetParError(i) for i in range(6)]
         
         return ([fitFunction.GetParameter(i) for i in range(6)]\
                 + [fitFunction.GetParError(i) for i in range(6)])
@@ -222,13 +244,51 @@ class LightYieldEstimator:
             peaks = self.Peaks
         
         try:    
-            threshBin = hist.FindBin(peaks[1] - (self.gain/2.0))
+            threshBin = hist.FindBin(peaks[1])# - (self.gain/2.0))
             upperBin = hist.GetNbinsX()
             darkCount = hist.Integral(threshBin,upperBin)/hist.Integral(1,upperBin)
         except:
             pass
             
-        return darkCount   
+        return darkCount
+    
+    ####################################################################
+    def estimateDarkCount(self,hist,peaks=None):
+        """
+        Estimate the dark count using eds strategy...
+        1) Fit first PE peak
+        2) Count entries above 1.5 sigmas
+        3) Subtract estimates from gaus.
+        4) Calculate dark count from this...
+        """
+        MINBIN = 2
+        MAXBIN = 64
+        
+        if peaks is None:
+            peaks = self.Peaks
+        
+        # 1)  Peak +- some adc counts
+        fitFunction = ROOT.TF1("pedfit","gaus", MINBIN, MAXBIN)
+        hist.Fit(fitFunction,"","",peaks[0]-14, peaks[0] + 3.0)
+        ped_mean = fitFunction.GetParameter(1)
+        ped_sigma = fitFunction.GetParameter(2)
+        
+        # 2)
+        #threshold = math.floor(ped_mean + 1.6*ped_sigma)
+        
+        threshold_bin = hist.FindBin(ped_mean + 1.8*ped_sigma)
+        counts_over_threshold = hist.Integral(threshold_bin, MAXBIN)
+        counts= hist.Integral(MINBIN, MAXBIN)
+        
+        
+        threshold = hist.GetBinCenter(threshold_bin)
+        ped_over_threshold = fitFunction.Integral(threshold, hist.GetBinCenter(MAXBIN))
+        
+        if counts > 0.5:
+            dc = (counts_over_threshold-ped_over_threshold)/counts
+            return dc if dc > 0.0001 else 0
+        else:
+            return 0
         
     ####################################################################
     def detectBreakdown(self,hist):
@@ -238,13 +298,23 @@ class LightYieldEstimator:
         """
         threshBin = hist.FindBin(240)
         upperBin = hist.GetNbinsX()
-        return ( hist.Integral(threshBin,upperBin) >  cmp_tol)
+        lowBin = 5
+        ratio = (hist.Integral(threshBin,upperBin) + hist.Integral(0,lowBin) / hist.GetEntries())
+        return ( ratio >  0.01 ) # More than 1% in lowest 2 bins or upper 15 bins..
     
+    def getPedastroolSingesFcn(self):
+        fitFunction = ROOT.TF1("pedfit","gaus(0) + gaus(3)", peaks[0] - (self.gain/2.0), peaks[1] + (self.gain/2.0))
+        
+        for i in range(6):
+            fitFunction.SetParameter(i, self.PedSinglesParams[i])
+            fitFunction.SetParError(i, self.PedSinglesParams[i+6])
+        
+        return fitFunction
     
 if __name__ == "__main__":
     
     #Test script:
-    channels = [3636,3979]
+    channels = [3500]
     
     allpeds = TrDAQRead(sys.argv[1])["RawADCs"]
     
