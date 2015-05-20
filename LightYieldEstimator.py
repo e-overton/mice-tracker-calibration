@@ -98,13 +98,38 @@ class LightYieldEstimator:
         # Using a ROOT TSpectrum, find the PE peaks in this channel's
         # ADC distribution, then store the positions of the peaks in self.Peaks
         # 2 = minimum peak sigma, 0.0025  = minimum min:max peak height ratio - see TSpectrum
-        nPeaks = spectrum.Search(ch, 1.95,"", 0.005 )
-        #nPeaks = spectrum.Search(ch, 1.6,"nobackground,noMarkov", 0.001 )
         
-        # If one peaks was found, then its probable that things were under biased..
-        if (nPeaks == 0):
-            print ("NoPeaks Detected.")
-            self.ChannelState = "NoPeaks"
+        # Use varying peak significance to estimate the location of the
+        # peaks, ideally to find the peaks in the low gain cassettes..
+        peak_significance = [2.0, 1.70, 1.0]
+        peak_significance_i = 0
+        peak_good = False
+        while (peak_significance_i < len(peak_significance)):
+        
+            nPeaks = spectrum.Search(ch, peak_significance[peak_significance_i],"nobackground", 0.005 )
+            
+            # If one peaks was found, then its probable that things were under biased..
+            if (nPeaks == 0):
+                print ("NoPeaks Detected.")
+                self.ChannelState = "NoPeaks"
+                return
+            elif (nPeaks == 1):
+                self.ChannelState = "NoPEPeaks"
+                if (ledLYE is None):
+                    pass
+                elif( len(ledLYE.Peaks) > 1):
+                    peak_good = True
+            else:
+                peak_good = True
+
+            # Break if good peaks
+            if (peak_good):
+                break
+            peak_significance_i = peak_significance_i + 1
+
+        #
+        if (not peak_good):
+            print ("No peaks in either dataset.")
             return
         
         # Load and re-order the peaks...
@@ -113,21 +138,12 @@ class LightYieldEstimator:
                 if (temp_peaks[p] > 1.0):
                     self.Peaks.append(temp_peaks[p])
         self.Peaks.sort()
-        
-        if (nPeaks == 1):
-            #self.darkcounts = self.estimateDarkCount(ch)
-            self.ChannelState = "NoPEPeaks"
-            if (ledLYE is None):
-                return
-            elif( len(ledLYE.Peaks) < 2):
-                return
-
-        
+                
         # If availalbe use LED LYE:
         if not (ledLYE is None):
             # Check for more peaks than LED peaks:
             if ( (len (self.Peaks) > len (ledLYE.Peaks) ) and \
-                 (len (self.Peaks) < 5) ) or ( len (ledLYE.Peaks) < 2):
+                 (len (self.Peaks) < 5) ) or ( len (ledLYE.Peaks) < 6):
                 print ("Peak mismatch.. more for noled!")
                 self.ChannelState = "LEDPeakMisMatch"
                 return
@@ -235,6 +251,19 @@ class LightYieldEstimator:
                 + [fitFunction.GetParError(i) for i in range(6)])
         
     
+    def fitPeak(self, hist, peak):
+        """
+        Fit an individual peak.
+        """
+        peaks = self.Peaks
+        print ("Fitting peak: %i from channel %i"%(peak, self.ChannelID))
+        
+        fitFunction = ROOT.TF1("pedfit","gaus", peaks[peak] - self.gain/3.0, peaks[peak] + self.gain/3.0)
+        hist.Fit(fitFunction, "", "", peaks[peak] - self.gain/3.0, peaks[peak] + self.gain/3.0)
+        
+        return ([fitFunction.GetParameter(i) for i in range(3)]\
+                + [fitFunction.GetParError(i) for i in range(3)])
+
     ####################################################################
     def getDarkCount(self, hist, peaks=None):
         """
@@ -248,7 +277,7 @@ class LightYieldEstimator:
             upperBin = hist.GetNbinsX()
             darkCount = hist.Integral(threshBin,upperBin)/hist.Integral(1,upperBin)
         except:
-            pass
+            return 0
             
         return darkCount
     
@@ -262,21 +291,21 @@ class LightYieldEstimator:
         4) Calculate dark count from this...
         """
         MINBIN = 2
-        MAXBIN = 64
+        MAXBIN = 128
         
         if peaks is None:
             peaks = self.Peaks
         
         # 1)  Peak +- some adc counts
         fitFunction = ROOT.TF1("pedfit","gaus", MINBIN, MAXBIN)
-        hist.Fit(fitFunction,"","",peaks[0]-14, peaks[0] + 3.0)
+        hist.Fit(fitFunction,"","",peaks[0]-14, peaks[0] + 2.0)
         ped_mean = fitFunction.GetParameter(1)
         ped_sigma = fitFunction.GetParameter(2)
         
         # 2)
         #threshold = math.floor(ped_mean + 1.6*ped_sigma)
         
-        threshold_bin = hist.FindBin(ped_mean + 1.8*ped_sigma)
+        threshold_bin = hist.FindBin(ped_mean + 1.2*ped_sigma)
         counts_over_threshold = hist.Integral(threshold_bin, MAXBIN)
         counts= hist.Integral(MINBIN, MAXBIN)
         

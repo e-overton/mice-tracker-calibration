@@ -57,7 +57,7 @@ def main ():
         skip = True
     
     campaign = None
-    ChannelIDs = range(0,4096)
+    ChannelIDs = range(3*1024,4*1024)
     ModuleIDs = GenerateModules(ChannelIDs)
     tempfilename = "stage1.json"
     
@@ -87,12 +87,15 @@ def main ():
     else:
         calibration_file = os.path.join(calibration_dir, tempfilename)
         campaign = GetCampaignFromJSON (calibration_file)
-        
+    
+    # Perform Modules Calibration:     
+    # Orignal code used "Highest.." now using by weight:
     #CalibrateModules_Highest(campaign, ModuleIDs, 0.02)
-    #scan_bias, scan_points = GetBiasScan(campaign, 3075, "darkcounts", False)
-    CalibrateModules_Weight(campaign, ModuleIDs, LinearWeight, {"target":0.023})
+    
+    #CalibrateModules_Weight(campaign, ModuleIDs, LinearWeight, {"target":0.023})
+    CalibrateModules_Weight(campaign, ModuleIDs, LinearWeightLimit, {"target":0.023, "limit":0.015})
     # Note: david uses a 2% target for the noise in Lab7. This was a 140ns integration
-    # gate, in the hall we are using a 1.65ns integration gate, so this has been
+    # gate, in the hall we are using a 165ns integration gate, so this has been
     # scaled accordingly.
     
     # Dump output:
@@ -127,7 +130,7 @@ def LoadCampaign(campaign, check_keys=valid_dataset_keys):
         try:
             title = "allpeds_Bias_" + str(dataset["bias"]) + ("_led" if dataset["LEDState"]=="ON" else "_noled")
             dataset["allpeds"] = TrDAQRead(dataset["filepath"], title)["RawADCs"]
-        except IndexError:
+        except IndexError, KeyError:
             print ("ERROR: Unable to load no-led-file:" + dataset["filepath"])
             missing_files += 1
             continue
@@ -434,7 +437,7 @@ def CalibrateModules_Weight(campaign, Modules, DarkWeightFunc, FuncArgs, Defunct
             mean = numpy.mean(weights_chopped)
             stddev = numpy.std(weights_chopped)
             
-            weights_filtered = [v for v in weights if (math.fabs(v-mean) < 2.5*stddev)]
+            weights_filtered = [v for v in weights if (math.fabs(v-mean) < 1.5*stddev)]
             ModuleWeights[w] = numpy.mean(weights_filtered)
                 
         # The lowest weight is the optimum module configuration:
@@ -451,6 +454,14 @@ def CalibrateModules_Weight(campaign, Modules, DarkWeightFunc, FuncArgs, Defunct
 def LinearWeight(darkcounts, FuncArgs):
     target = FuncArgs["target"]
     return math.fabs(target-darkcounts)
+
+def LinearWeightLimit(darkcounts, FuncArgs):
+    target = FuncArgs["target"]
+    limit = FuncArgs["limit"]
+    value = math.fabs(target-darkcounts)
+    if value > limit:
+        return limit
+    return value
 
 def LinerAsyWeight(darkcounts, FuncArgs):
     target = FuncArgs["target"]
