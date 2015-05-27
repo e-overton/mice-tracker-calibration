@@ -115,6 +115,7 @@ class BiasUIMainFrame( ROOT.TGMainFrame ):
         self._plotChannelCounts = ROOT.TPyDispatcher(self.PlotChannelDarkCounts)
         self._plotChannelLightYield = ROOT.TPyDispatcher(self.PlotChannelLightYield)
         self._plotChannelDCLightYield = ROOT.TPyDispatcher(self.PlotChannelDarkCountsLightYield)
+        self._plotChannelTest = ROOT.TPyDispatcher(self.PlotChannelDCDiff)
         
         self.fBoard = ROOT.TGHorizontalFrame( self.fChannelSelector, 30, 200)
         self.lBoard = ROOT.TGLabel( self.fBoard, "Board:  " )
@@ -185,6 +186,10 @@ class BiasUIMainFrame( ROOT.TGMainFrame ):
         self.bChanDLYDraw = ROOT.TGTextButton(self.fChannelSelector,"Plot Dark - Light Yield")
         self.bChanDLYDraw.Connect("Clicked()", "TPyDispatcher", self._plotChannelDCLightYield, "Dispatch()" )
         self.fChannelSelector.AddFrame( self.bChanDLYDraw, ROOT.TGLayoutHints(ROOT.kLHintsRight))
+
+        self.bChanTestDraw = ROOT.TGTextButton(self.fChannelSelector,"Test")
+        self.bChanTestDraw.Connect("Clicked()", "TPyDispatcher", self._plotChannelTest, "Dispatch()" )
+        self.fChannelSelector.AddFrame( self.bChanTestDraw, ROOT.TGLayoutHints(ROOT.kLHintsRight))
         
         self.fSideBar.AddFrame(self.fChannelSelector, ROOT.TGLayoutHints(ROOT.kLHintsExpandX | ROOT.kLHintsTop,2,2,2,2))
         ##############################################################################
@@ -427,7 +432,8 @@ class BiasUIMainFrame( ROOT.TGMainFrame ):
             for this_ChannelID in Module["ChannelIDs"]:
                 scan_bias, scan_darkcounts =  BiasCalibrator.GetBiasScan(self.campaign, this_ChannelID, "darkcounts", False)
                 DarkCount = numpy.interp(OptimumBias, scan_bias, scan_darkcounts)
-                self.hist.Fill(DarkCount)
+                zero_counts = min(scan_darkcounts[0:8])
+                self.hist.Fill(DarkCount-zero_counts)
             self.hist.Draw()
             
         self.Canvas.GetCanvas().Update()
@@ -448,9 +454,33 @@ class BiasUIMainFrame( ROOT.TGMainFrame ):
                 for this_ChannelID in Module["ChannelIDs"]:
                     scan_bias, scan_darkcounts =  BiasCalibrator.GetBiasScan(self.campaign, this_ChannelID, "darkcounts", False)
                     DarkCount = numpy.interp(OptimumBias, scan_bias, scan_darkcounts)
-                    self.hist.Fill(this_ChannelID,DarkCount)
+                    zero_counts = min(scan_darkcounts[0:8])
+                    self.hist.Fill(this_ChannelID,DarkCount-zero_counts)
             
         self.hist.Draw("COL")
+        self.Canvas.GetCanvas().Update()
+
+    # Temporary test plot to see difference between adeys method
+    # and new method...
+    def PlotChannelDCDiff(self):
+        #
+        ChannelID = int(self.sUniqueChannel.GetNumberEntry().GetIntNumber())
+        scan_bias_dc, scan_dc = BiasCalibrator.GetBiasScan(self.campaign, ChannelID, "darkcounts", False)
+        scan_bias_dco, scan_dco = BiasCalibrator.GetBiasScan(self.campaign, ChannelID, "darkcounts_old", True)
+        
+         
+        self.tg = ROOT.TGraph()
+        for i in range (len (scan_bias_dc)):
+            i_match = None
+            for j in range(len (scan_bias_dc)):
+                if math.fabs(scan_bias_dco[i] - scan_bias_dc[j])\
+                 < BiasCalibrator.cmp_tol:
+                    i_match = j
+            if not (i_match is None):
+                self.tg.SetPoint(self.tg.GetN(), scan_dc[i], scan_dco[i_match])
+        self.tg.Draw("apl")
+        self.tg.SetTitle("Dark Counts for channel %i; DC; DC_Old"%ChannelID)
+        
         self.Canvas.GetCanvas().Update()
         
 

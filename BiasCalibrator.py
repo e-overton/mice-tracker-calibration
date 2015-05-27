@@ -57,7 +57,7 @@ def main ():
         skip = True
     
     campaign = None
-    ChannelIDs = range(3*1024,4*1024)
+    ChannelIDs = range(0,4*1024)
     ModuleIDs = GenerateModules(ChannelIDs)
     tempfilename = "stage1.json"
     
@@ -115,17 +115,21 @@ def LoadCampaign(campaign, check_keys=valid_dataset_keys):
     
     Retuns: a new list containing the loaded data:
     """
-    
+
+    newcampaign = []
+
     for run in campaign:
         # Check the run has data collected
         if not all(valid_key in run for valid_key in check_keys):
             print ("Data missing for calibration bias run")
             continue
+        else:
+            newcampaign.append(run)
     
     # Run the LED runs first, followed by the no LED runs.
     # this ensures that LED Data is available for analysis...
     missing_files = 0     
-    for dataset in campaign:                 
+    for dataset in newcampaign:                 
         # Load File
         try:
             title = "allpeds_Bias_" + str(dataset["bias"]) + ("_led" if dataset["LEDState"]=="ON" else "_noled")
@@ -135,7 +139,7 @@ def LoadCampaign(campaign, check_keys=valid_dataset_keys):
             missing_files += 1
             continue
     
-    return campaign
+    return newcampaign
 
 def SetupDatasetChannels(dataset, biases=None, LEDIntensity=None ):
     """
@@ -402,8 +406,10 @@ def CalibrateModules_Weight(campaign, Modules, DarkWeightFunc, FuncArgs, Defunct
                     scan_darkcounts[i] = scan_darkcounts[i-1]
                     
             # The dark counts, using numpys interpolate functionality:
+            # Added zero_counts to rezero the measurement!
             DarkCounts = numpy.interp(Biases, scan_bias, scan_darkcounts)
-            ChannelWeights = [DarkWeightFunc(c, FuncArgs) for c in DarkCounts]
+            zero_counts = min(DarkCounts[0:8])
+            ChannelWeights = [DarkWeightFunc(c-zero_counts, FuncArgs) for c in DarkCounts]
             
             # Using an actual fit to the data to estimate the darkcounts...
             # Not used... Did noy work.

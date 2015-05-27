@@ -107,12 +107,18 @@ if __name__ == "__main__":
     led_peds = Data_LED["RawADCs"]
     led_fname = Data_LED["filename"]
 
-    channels = GenerateChannels(range(3*1024, 4*1024))
+    channels = GenerateChannels(range(2*1024, 4*1024))
     led_channels = ProcessLED(channels, led_peds)
 
+    c1 = ROOT.TCanvas("c1", "c1", 800,600)
+    #ROOT.SetOwnsership(c1, False)
+    c1.Divide(1,2)
+
+    c1.cd(1)
     led_pedsubtract = Plot_PePeaksNoPed(led_channels)
     led_pedsubtract.Draw("ap")
 
+    c1.cd(2)
     led_gains = Plot_Gains(led_channels)
     led_gains.Draw("ap")
 
