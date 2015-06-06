@@ -15,7 +15,8 @@ module_description = \
 import sys
 import ROOT
 from _abcoll import Iterable
-sys.path.insert(0, '/home/daq/tracker/analysis')
+#sys.path.insert(0, '/home/daq/tracker/analysis')
+sys.path.insert(0,'/home/ed/MICE/tracker/analysis')
 from TrDAQReader import TrDAQRead
 import os
 import json
@@ -57,7 +58,7 @@ def main ():
         skip = True
     
     campaign = None
-    ChannelIDs = range(0,4*1024)
+    ChannelIDs = range(0,4*512) + range(5*512,8*512)
     ModuleIDs = GenerateModules(ChannelIDs)
     tempfilename = "stage1.json"
     
@@ -92,8 +93,8 @@ def main ():
     # Orignal code used "Highest.." now using by weight:
     #CalibrateModules_Highest(campaign, ModuleIDs, 0.02)
     
-    #CalibrateModules_Weight(campaign, ModuleIDs, LinearWeight, {"target":0.023})
-    CalibrateModules_Weight(campaign, ModuleIDs, LinearWeightLimit, {"target":0.023, "limit":0.015})
+    CalibrateModules_Weight(campaign, ModuleIDs, LinearWeight, {"target":0.023})
+    #CalibrateModules_Weight(campaign, ModuleIDs, LinearWeightLimit, {"target":0.023, "limit":0.015})
     # Note: david uses a 2% target for the noise in Lab7. This was a 140ns integration
     # gate, in the hall we are using a 165ns integration gate, so this has been
     # scaled accordingly.

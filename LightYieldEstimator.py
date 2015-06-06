@@ -101,7 +101,9 @@ class LightYieldEstimator:
         # Using a ROOT TSpectrum, find the PE peaks in this channel's
         # ADC distribution, then store the positions of the peaks in self.Peaks
         # 2 = minimum peak sigma, 0.0025  = minimum min:max peak height ratio - see TSpectrum
-        nPeaks = spectrum.Search(ch, 1.95,"", 0.005 )
+        nPeaks = spectrum.Search(ch, 1.95,"", 0.005 ) # setting for finding peaks on calibration sweep.
+        #nPeaks = spectrum.Search(ch, 1.3,"nobackground", 0.005 )
+
         #nPeaks = spectrum.Search(ch, 1.6,"nobackground,noMarkov", 0.001 )
         
         # If one peaks was found, then its probable that things were under biased..
@@ -297,7 +299,7 @@ class LightYieldEstimator:
         # 2)
         #threshold = math.floor(ped_mean + 1.6*ped_sigma)
         
-        threshold_bin = hist.FindBin(ped_mean + 1.0*ped_sigma)
+        threshold_bin = hist.FindBin(ped_mean + 1.8*ped_sigma)
         counts_over_threshold = hist.Integral(threshold_bin, MAXBIN)
         counts= hist.Integral(MINBIN, MAXBIN)
         
@@ -307,9 +309,9 @@ class LightYieldEstimator:
         
         if counts > 0.5:
             dc = (counts_over_threshold-ped_over_threshold)/counts
-            return dc/2. if dc/2. > 0.0001 else 0.0001
+            return dc/2. if dc/2. > 0.0001 else 1E-9
         else:
-            return 0
+            return 1E-9
         
     ####################################################################
     def detectBreakdown(self,hist):
