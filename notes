@@ -1,0 +1,99 @@
+Calibration Biases Check:
+Tgt value is 1.5*0.023 for dark counts. since upstream calibration was underestimate.
+===================================================
+
+Cryo3, Board 0:
+Mod 0, Bias = 6.60, OK.
+Mod 1, Bias = 6.70, OK.
+Mod 2, Bias = 6.70, OK.
+Mod 3, Bias = 6.65, OK. Channels have -1pe peak! @ 192ish!
+Mod 4, Bias = 7.75, OK.
+Mod 5, Bias = 7.95, OK (perhaps a little low in places!).
+Mod 6, Bias = 7.65, OK,
+Mod 7, Bias = 7.35, OK
+
+Cryo3, Board 1:
+Mod 0, Bias = 7.60, OK
+Mod 1, Bias = 7.40, OK.
+Mod 2, Bias = 7.85, OK.
+Mod 3, Bias = 7.65, OK.
+Mod 4, Bias = 6.65, OK.
+Mod 5, Bias = 6.70, OK
+Mod 6, Bias = 6.75, OK.
+Mod 7, Bias = 6.60, OK.
+
+Cryo3, RT12 (RH cass, LH board):
+Mod 0, Bias 6.70, OK
+Mod 1, Bias 7.05, Looked High, Reduced from 7.15
+Mod 2, Bias 6.95, Looks OK.
+Mod 3, Bias 7.00, Could be High, but looks OK.
+Mod 4, Bias 6.85, Looks OK.
+MOd 5, Bias 6.55, Looks OK.
+Mod 6, Bias 6.95, First 16 channels Hot, Remaiing look optimum.
+Mod 7, Bias 7.10, Looks OK. Some a little hot at 7.20.
+
+Cryo3, RT12 (RH cass, RH board):
+Mod 0, Bias 6.95, OK.
+Mod 1, Bias 7.00. 16 CH at end of module are _much_ more noisy. Breakdown at suggested optimum (7.15).
+Mod 2, Bias 6.25. Maybe light leak?
+Mod 3, Bias 6.95, Looks OK. Number of channels in breakdown/readout issues.
+Mod 4, Bias 6.80, Looks OK.
+Mod 5, Bias 6.90, Looks OK.
+Mod 6, Bias 6.50, Looks OK. Some a little hot, some cold, but OK for the most part.
+Mod 7, Bias 6.60, Looks OK.
+
+
+Cryo4 RT0 (LH cass, LH board):
+Mod 0, Bias 6.85, Looks OK.
+Mod 1, Bias 7.20, Ok
+Mod 2, Bias 6.6, OK
+Mod 3, Bias 6.45, OK.
+Mod 4, Bias 6.75, OK
+Mod 5, Bias 6.20, OK. Some hot channels.
+Mod 6, Bias 7.10, OK
+Mod 7, Bias 6.85, OK
+
+Cryo4 RT1 (LH cass, RH board):
+Mod 0, Bias 6.80, OK
+Mod 1, Bias 6.95, OK
+Mod 2, Bias 6.60, Not OK.
+Mod 3, Bias 6.75, OK, Some hot channels.
+Mod 4, Bias 6.50, OK,
+Mod 5, Bias 6.65, OK,
+Mod 6, Bias 6.25, OK,
+Mod 7, Bias 6.80, OK,
+
+
+Cryo4 RT12 (RH Cass, LH Board):
+Mod 0, Bias 7.25, Looks OK.
+Mod 1, Bias 6.65, OK.
+Mod 2, Bias 6.50, OK.
+Mod 3, Bias 6.40, OK.
+Mod 4, Bias 6.40, OK
+Mod 5, Bias 7.50, OK.
+Mod 6, Bias 6.70, OK.
+Mod 7, Bias 7.45, OK.
+
+Cryo4 RT13 (RH Cass, LH Board):
+Mod 0, Bias 7.30, OK. Hot at beginning of module.
+Mod 1, Bias 7.55, OK.
+Mod 2, Bias 7.50, OK.
+Mod 3, Bias 6.55, OK.
+Mod 4, Bias 6.40, OK.
+Mod 5, Bias 6.45, OK.
+Mod 6, Bias 6.65, OK.
+Mod 7, Bias 6.70, OK.
+
+============================================================
+Calibration Versions:
+
+a: Initial pass of cryo3 rh cassette only!
+b: Addition of cryo 4 lh cassette.
+c: Added cryo 3 lh cassette.
+
+
+
+Note:
+Do not use C4 Mod 2 - bad data
+Do not use C4 Mod 6 - bad temperature.
+

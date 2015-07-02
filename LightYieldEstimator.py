@@ -289,6 +289,10 @@ class LightYieldEstimator:
         
         if peaks is None:
             peaks = self.Peaks
+
+        if len(peaks) == 0:
+            print "Skipping channel with no peak"
+            return 1E-9
         
         # 1)  Peak +- some adc counts
         fitFunction = ROOT.TF1("pedfit","gaus", MINBIN, MAXBIN)
@@ -296,10 +300,10 @@ class LightYieldEstimator:
         ped_mean = fitFunction.GetParameter(1)
         ped_sigma = fitFunction.GetParameter(2)
         
-        # 2)
+        # 2) 
         #threshold = math.floor(ped_mean + 1.6*ped_sigma)
         
-        threshold_bin = hist.FindBin(ped_mean + 1.8*ped_sigma)
+        threshold_bin = hist.FindBin(ped_mean + 2.2*ped_sigma)
         counts_over_threshold = hist.Integral(threshold_bin, MAXBIN)
         counts= hist.Integral(MINBIN, MAXBIN)
         
@@ -309,7 +313,7 @@ class LightYieldEstimator:
         
         if counts > 0.5:
             dc = (counts_over_threshold-ped_over_threshold)/counts
-            return dc/2. if dc/2. > 0.0001 else 1E-9
+            return dc/2. if dc/2. > 1E-9 else 1E-9
         else:
             return 1E-9
         

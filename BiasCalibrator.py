@@ -58,7 +58,7 @@ def main ():
         skip = True
     
     campaign = None
-    ChannelIDs = range(0,4*512) + range(5*512,8*512)
+    ChannelIDs = range(0,4*1024)# +  range(7*512,8*512)
     ModuleIDs = GenerateModules(ChannelIDs)
     tempfilename = "stage1.json"
     
@@ -93,7 +93,7 @@ def main ():
     # Orignal code used "Highest.." now using by weight:
     #CalibrateModules_Highest(campaign, ModuleIDs, 0.02)
     
-    CalibrateModules_Weight(campaign, ModuleIDs, LinearWeight, {"target":0.023})
+    CalibrateModules_Weight(campaign, ModuleIDs, LinearWeight, {"target":1.5*0.023})
     #CalibrateModules_Weight(campaign, ModuleIDs, LinearWeightLimit, {"target":0.023, "limit":0.015})
     # Note: david uses a 2% target for the noise in Lab7. This was a 140ns integration
     # gate, in the hall we are using a 165ns integration gate, so this has been
@@ -400,12 +400,16 @@ def CalibrateModules_Weight(campaign, Modules, DarkWeightFunc, FuncArgs, Defunct
             # Lookup the bis and darkcount scans:
             scan_bias, scan_darkcounts = GetBiasScan(campaign, ChannelID, "darkcounts", False)
             
+            if len(scan_bias) == 0:
+                print "No data in scan"
+                continue
+            
             # The darkcounts should never decrease as a function of
             # applied bias, so enforce that it does not:
             for i in range (1, len(scan_darkcounts)):
                 if scan_darkcounts[i] < scan_darkcounts[i-1]:
                     scan_darkcounts[i] = scan_darkcounts[i-1]
-                    
+            
             # The dark counts, using numpys interpolate functionality:
             # Added zero_counts to rezero the measurement!
             DarkCounts = numpy.interp(Biases, scan_bias, scan_darkcounts)
@@ -527,11 +531,15 @@ def GetBiasScan(campaign, ChannelID, ChannelKey ,LEDAvail=None):
         
         # Append data only if matching LED State:
         if (LEDAvail is None) or (LEDAvail == (channel["LEDIntensity"] > 1E-6)):
-            bias_points.append(channel["bias"])
-            key_points.append(channel[ChannelKey])
+            if ("bias" in channel) and (ChannelKey in channel):
+                bias_points.append(channel["bias"])
+                key_points.append(channel[ChannelKey])
             
     # Reorder the list:
-    bias_points, key_points = (list(t) for t in zip(*sorted(zip(bias_points, key_points))))
+    try:
+        bias_points, key_points = (list(t) for t in zip(*sorted(zip(bias_points, key_points))))
+    except:
+        pass
     
     #Return the sorted list:
     return bias_points, key_points
