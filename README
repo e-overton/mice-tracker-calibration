@@ -1,0 +1,41 @@
+Tracker Calibration Tools:
+
+This toolkit should prove the nesseseary tools and workflow to allow the
+detectors to be calibrated. Please follow the instructions to operate
+the calibration functionality.
+
+Version Control via git.
+
+
+Requirements:
+pyROOT.
+
+
+
+Workflow:
+
+1) Use the BiasCalibrator to find the optimum biases for the
+   VLPC modules.
+   This can be run with BiasCalibratorUI to get a nice GUI to
+   validate the calibration.
+
+   The output values from this excersize should be copied into:
+   > Tracker XML Files for bias setting.
+   > calib_folder/Biases.txt - List of each modules bias setting.
+   > calib_folder/BadFE.txt - List of bad front end channels (do not make normal peaks).
+   Note these files are made by hand.
+   
+
+2) Make a new working folder like 2015-01a, using the
+   config there as a template.
+   Then launch ADCCalibrator, with first argument as the fodler
+   created for calibrations. This will try to automatically fit all
+   the data.
+   Note that using the external LED data has been cut out, 
+   however it can be re-enabled by un-commenting lines in the ADCCalibrator 
+   script.
+   
+   
+3) Validate the data by looking over it. This can be completed using
+   the ADCCalibratorUI script, which makes a nice GUI. Hand edit values which
+   are incorrect.

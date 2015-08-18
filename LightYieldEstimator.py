@@ -29,16 +29,17 @@ mode = "New"
 class LightYieldEstimator:
     """
     Object to process the light yields and return the status of the channel
-    TODO: Insert method to precicely find location of every peak.
     TODO: Evaluate integrals of each peak.
     """
     
     ####################################################################
+    ClassName = "LightYieldEstimator"
     ChannelState = "INVALID"
     Peaks = []
     Integrals = []
+    IntegralPeaks = []
     gain = 0.
-    offset = 0.
+    offset = 0. # Note this is the pedestal!
     darkcounts = 0.
     darkcounts_old = 0.
     pe = 0.
@@ -101,8 +102,8 @@ class LightYieldEstimator:
         # Using a ROOT TSpectrum, find the PE peaks in this channel's
         # ADC distribution, then store the positions of the peaks in self.Peaks
         # 2 = minimum peak sigma, 0.0025  = minimum min:max peak height ratio - see TSpectrum
-        nPeaks = spectrum.Search(ch, 1.95,"", 0.005 ) # setting for finding peaks on calibration sweep.
-        #nPeaks = spectrum.Search(ch, 1.3,"nobackground", 0.005 )
+        #nPeaks = spectrum.Search(ch, 1.95,"", 0.005 ) # setting for finding peaks on bias calibration sweep.
+        nPeaks = spectrum.Search(ch, 1.70,"", 0.005 ) # setting for finding peaks on bias calibration sweep.
 
         #nPeaks = spectrum.Search(ch, 1.6,"nobackground,noMarkov", 0.001 )
         
@@ -186,6 +187,7 @@ class LightYieldEstimator:
         if len(peaks)==1:
             return .0
         
+        
         for p in range (1, len(peaks)):
             steps.append(peaks[p] - peaks[p-1])
         
@@ -267,13 +269,14 @@ class LightYieldEstimator:
         Fit an individual peak.
         """
         peaks = self.Peaks
-        print ("Fitting peak: %i from channel %i"%(peak, self.ChannelID))
+        #print ("Fitting peak: %i from channel %i"%(peak, self.ChannelID))
         
         fitFunction = ROOT.TF1("pedfit","gaus", peaks[peak] - self.gain/3.0, peaks[peak] + self.gain/3.0)
-        hist.Fit(fitFunction, "", "", peaks[peak] - self.gain/3.0, peaks[peak] + self.gain/3.0)
+        hist.Fit(fitFunction, "", "QN", peaks[peak] - self.gain/3.0, peaks[peak] + self.gain/3.0)
         
         return ([fitFunction.GetParameter(i) for i in range(3)]\
                 + [fitFunction.GetParError(i) for i in range(3)])
+
 
     ####################################################################
     def estimateDarkCount(self,hist,peaks=None):
@@ -317,6 +320,39 @@ class LightYieldEstimator:
         else:
             return 1E-9
         
+    def peakIntegrals(self, hist, peaks=None):
+        """
+        Determine the integral of each peak in the detector.
+        Note that the peak integral is determined as half way between
+        each peak...
+        Note that the final peak contains everythin up to 255...
+        """
+        
+        if peaks is None:
+            peaks = self.Peaks
+            
+        if len(peaks) < 1:
+            return False
+        
+        self.IntegralPeaks = peaks
+        
+        self.Integrals = [0  for p in peaks]
+            
+        for p in range (len(peaks)):
+            
+            lowbin = hist.FindBin(0)
+            highbin = hist.FindBin(255)
+            
+            if p>0:
+                lowbin = hist.FindBin( peaks[p-1] )
+                
+            if p<len(peaks)-1:
+                highbin = hist.FindBin( peaks[p] )
+                
+            self.Integrals[p] = hist.Integral(lowbin, highbin)
+            
+        return self.Integrals[p]
+        
     ####################################################################
     def detectBreakdown(self,hist):
         """
@@ -337,6 +373,8 @@ class LightYieldEstimator:
             fitFunction.SetParError(i, self.PedSinglesParams[i+6])
         
         return fitFunction
+    
+        
     
 if __name__ == "__main__":
     

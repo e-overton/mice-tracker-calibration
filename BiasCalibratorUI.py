@@ -10,7 +10,6 @@ module_description = \
 
 
 import os, sys, ROOT
-import multiprocessing
 import BiasCalibrator
 import LightYieldEstimator
 import numpy
