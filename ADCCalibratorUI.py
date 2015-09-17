@@ -192,6 +192,11 @@ class ADCUIMainFrame( ROOT.TGMainFrame ):
         self.brepeatfit = ROOT.TGTextButton(self.fSideBar,"Repeat last fit")
         self.brepeatfit.Connect("Clicked()", "TPyDispatcher", self._repeatfit, "Dispatch()" )
         self.fSideBar.AddFrame( self.brepeatfit, ROOT.TGLayoutHints(ROOT.kLHintsRight))
+        
+        self._nextbad = ROOT.TPyDispatcher(self.FindNextBadChannel)
+        self.bnextbad = ROOT.TGTextButton(self.fSideBar,"Find next bad")
+        self.bnextbad.Connect("Clicked()", "TPyDispatcher", self._nextbad, "Dispatch()" )
+        self.fSideBar.AddFrame( self.bnextbad, ROOT.TGLayoutHints(ROOT.kLHintsRight))
 
         self._editChannel = ROOT.TPyDispatcher(self.EditChannel)
         self.bEditChannel = ROOT.TGTextButton(self.fSideBar,"Edit Channel")
@@ -581,6 +586,23 @@ class ADCUIMainFrame( ROOT.TGMainFrame ):
         print ("Editing Channel: %i"%ChannelID)
         
         self.Calibration.FEChannels = FECalibrationUtils.EditChannelData(self.Calibration.FEChannels, ChannelID)
+        
+    def FindNextBadChannel(self):
+        
+        ChannelID = int(self.sUniqueChannel.GetNumberEntry().GetIntNumber())
+        for ChannelUID in range(ChannelID+1, FECalibrationUtils.NUM_CHANS):
+            stop = False
+            if self.Calibration.FEChannels[ChannelUID].InTracker:
+                for Issue in self.Calibration.FEChannels[ChannelUID].Issues:
+                    if (Issue["Severity"] > 2):
+                        stop = True
+            if stop:
+                break
+            
+        self.sUniqueChannel.GetNumberEntry().SetIntNumber(ChannelUID)
+        self.UpdateUniqueCounter()
+        self.PlotChannelHist(0)
+        
         
     
     def SaveAll(self):

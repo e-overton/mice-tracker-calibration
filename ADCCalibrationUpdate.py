@@ -157,8 +157,7 @@ def UpdateCalibration(old, new):
         #if (issuefound):
         #    c1.Update()
         #    raw_input("we found an issue!")
-        
-       
+    new.status["InternalLED"] = True  
         
 if __name__ == "__main__":
     
