@@ -75,8 +75,6 @@ class FrontEndChannel:
         self.noise_1pe_rate = 0
         self.noise_2pe_rate = 0
         
-    
-        
         if not (Map is None):
             self.loadMap(Map)
         else:
@@ -85,22 +83,10 @@ class FrontEndChannel:
     # getMap - allows the objects members to be extracted as a python
     # dictionary.
     def getMap(self):
-        
-        #outdict = self.__dict__
-        
-        #for key in outdict:
-            #if "LightYield" in key:
-            #    outdict[key] = outdict[key].getMap()
-                
         return self.__dict__
     
     # loadMap - allows the object to be loaded from a dictoinary.
     def loadMap(self,readdict):
         for key in readdict:
-            # Decode Light yield objects:
-            #if"LightYield" in key:
-            #    setattr(self, key, LightYieldEstimator.LightYieldEstimator(readdict[key]))
-            #else:
-                
             setattr(self, key, readdict[key])
     

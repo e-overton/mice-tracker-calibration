@@ -17,6 +17,7 @@ sys.path.insert(0, '/home/ed/MICE/tracker/analysis/')
 from TrDAQReader import TrDAQRead
 import numpy
 import math
+import array
 
 #Compare tolerence (for comparing floats)
 cmp_tol = 1E-6
@@ -103,15 +104,33 @@ class LightYieldEstimator:
         # ADC distribution, then store the positions of the peaks in self.Peaks
         # 2 = minimum peak sigma, 0.0025  = minimum min:max peak height ratio - see TSpectrum
         #nPeaks = spectrum.Search(ch, 1.95,"", 0.005 ) # setting for finding peaks on bias calibration sweep.
-        nPeaks = spectrum.Search(ch, 1.70,"", 0.005 ) # setting for finding peaks on bias calibration sweep.
-
+        
+        for sigmas,thresholds in zip([3.0,2.0,1.5,1.0,0.5],[0.05,0.05,0.01,0.005,0.005]):
+            spectrum = ROOT.TSpectrum()
+            nPeaks = spectrum.Search(ch, sigmas,"", thresholds) # setting for finding peaks on bias calibration sweep.
+            if nPeaks > 1:
+                break
+        
+        #nPeaks = 0
         #nPeaks = spectrum.Search(ch, 1.6,"nobackground,noMarkov", 0.001 )
         
         # If one peaks was found, then its probable that things were under biased..
         if (nPeaks == 0):
             print ("NoPeaks Detected.")
-            self.ChannelState = "NoPeaks"
-            return
+            
+            # Try to find something with the hi-res-search?
+            binsx = ch.GetNbinsX()
+            source = array.array( 'f', [0]*binsx)
+            for bin in range(ch.GetNbinsX()):
+                source[bin] = ch.GetBinContent(bin)
+            
+            dest = array.array( 'f', [0]*binsx )
+            
+            nPeaks = spectrum.Search1HighRes(source, dest, binsx, 1.0, 0.0005, False, 4, True, 3)
+            
+            if (nPeaks == 0):
+                self.ChannelState = "NoPeaks"
+                return
         
         # Load and re-order the peaks...
         temp_peaks = spectrum.GetPositionX()
@@ -380,6 +399,7 @@ if __name__ == "__main__":
     
     #Test script:
     channels = [3500]
+    #channels = [6016]
     
     allpeds = TrDAQRead(sys.argv[1])["RawADCs"]
     

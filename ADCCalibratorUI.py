@@ -182,6 +182,16 @@ class ADCUIMainFrame( ROOT.TGMainFrame ):
         self.bNoiseRDraw = ROOT.TGTextButton(self.fSideBar,"Plot Noise Rates")
         self.bNoiseRDraw.Connect("Clicked()", "TPyDispatcher", self._plotNoiseRates, "Dispatch()" )
         self.fSideBar.AddFrame( self.bNoiseRDraw, ROOT.TGLayoutHints(ROOT.kLHintsRight))
+        
+        self._updatfromfit = ROOT.TPyDispatcher(self.UpdateFromFit)
+        self.bupdatefromfit = ROOT.TGTextButton(self.fSideBar,"Update from fit")
+        self.bupdatefromfit.Connect("Clicked()", "TPyDispatcher", self._updatfromfit, "Dispatch()" )
+        self.fSideBar.AddFrame( self.bupdatefromfit, ROOT.TGLayoutHints(ROOT.kLHintsRight))
+        
+        self._repeatfit = ROOT.TPyDispatcher(self.RepeatLastFit)
+        self.brepeatfit = ROOT.TGTextButton(self.fSideBar,"Repeat last fit")
+        self.brepeatfit.Connect("Clicked()", "TPyDispatcher", self._repeatfit, "Dispatch()" )
+        self.fSideBar.AddFrame( self.brepeatfit, ROOT.TGLayoutHints(ROOT.kLHintsRight))
 
         self._editChannel = ROOT.TPyDispatcher(self.EditChannel)
         self.bEditChannel = ROOT.TGTextButton(self.fSideBar,"Edit Channel")
@@ -268,15 +278,18 @@ class ADCUIMainFrame( ROOT.TGMainFrame ):
             print "Error plotting ped hist"
             print e.message
         
-    def PlotChannelHist(self):
+    def PlotChannelHist(self,nchans=None):
         """
         Plot a single channel, and highlight the calibrated PE peaks etc...
         """
         
-        # Check auto increment function:
-        if (self.bAutoIncrement.IsDown()):
-            self.IncrementUniqueCounter()
-        
+        if nchans is None: 
+            # Check auto increment function:
+            if (self.bAutoIncrement.IsDown()):
+                self.IncrementUniqueCounter()
+        else:
+            for n in range(nchans):
+                self.IncrementUniqueCounter()
         
         # Channel Identifier:
         ChannelID = int(self.sUniqueChannel.GetNumberEntry().GetIntNumber())
@@ -311,6 +324,7 @@ class ADCUIMainFrame( ROOT.TGMainFrame ):
         
             SourceHist.SetNameTitle("h", "Channel %i"%ChannelID)
             SourceHist.Draw()
+            self.th = SourceHist
         
             # Add peak markers:
             max_h = SourceHist.GetBinContent(SourceHist.GetMaximumBin())
@@ -418,7 +432,7 @@ class ADCUIMainFrame( ROOT.TGMainFrame ):
         self.th3.Draw()
         self.th3.SetFillColor(ROOT.kGreen-7)
         self.th4.Draw("SAME")
-        self.th4.SetFillColor(ROOT.kOrange)
+        self.th4.SetFillColor(ROOT.kRed)
         self.th.Draw("SAME")
         self.th.SetFillColor(ROOT.kYellow)
         self.Canvas.GetCanvas().Update()
@@ -511,6 +525,53 @@ class ADCUIMainFrame( ROOT.TGMainFrame ):
         self.th.SetFillColor(ROOT.kYellow)
         self.th2.Draw("SAME")
         self.th2.SetFillColor(ROOT.kBlue-3)
+        self.Canvas.GetCanvas().Update()
+        
+    # Function to update the fitted values by hand...
+    def UpdateFromFit(self):
+
+        # Extract fit data:
+        fitfunc = self.th.GetFunction("PrevFitTMP")
+        if not fitfunc:
+            fitfunc = self.th.GetFunction("gaus+gaus(3)")
+        
+        if fitfunc:
+            
+            # Estimate gain/pedestal:
+            pedestal = fitfunc.GetParameter(1)
+            gain = fitfunc.GetParameter(4) - fitfunc.GetParameter(1)
+            
+            print("modifying gain/pedestal to: %.3f, %.3f"%(pedestal,gain))
+            
+            # Update Channel:
+            ChannelID = int(self.sUniqueChannel.GetNumberEntry().GetIntNumber())
+            channel = self.Calibration.FEChannels[ChannelID]
+            
+            channel.ADC_Pedestal = pedestal
+            channel.ADC_Gain = gain
+            
+            # Update issues:
+            for issue in channel.Issues:
+                if issue["Severity"] == 4 and issue["Issue"] ==  "InternalLED":
+                    issue["Severity"] = 0  
+                    issue["Comment"] += ", Hand Fitted."
+                    
+        # Store fit values:
+        self.fitvalues = [fitfunc.GetParameter(i) for i in range(6)]
+        self.PlotChannelHist(0)
+        
+    # repeat using the last fit as a seed:    
+    def RepeatLastFit(self):
+        
+        try:
+            upthresh = self.fitvalues[1] + (self.fitvalues[4] - self.fitvalues[1])*1.5
+        
+            self.fitfunction = ROOT.TF1("PrevFitTMP","gaus+gaus(3)",0,upthresh)
+            [self.fitfunction.SetParameter(i, self.fitvalues[i]) for i in range(6)]
+            self.th.Fit(self.fitfunction, "R")
+        except:
+            raise
+        
         self.Canvas.GetCanvas().Update()
         
     def EditChannel(self):

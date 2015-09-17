@@ -32,6 +32,7 @@ import tempfile  # For editing data
 import subprocess # For editing data
 
 from FrontEndChannel import FrontEndChannel
+import TrDAQReader
 
 
 ########################################################################
@@ -250,7 +251,6 @@ def ApplyBadChannels(FEChannels, bad_filename):
 ########################################################################
 # Function to manually edit the data in a specific channel:
 ########################################################################
-
 def EditChannelData(FEChannels, ChannelUID):
     
     # The orignal data we want to edit:
@@ -291,6 +291,67 @@ def EditChannelData(FEChannels, ChannelUID):
     
     return FEChannels
 
+########################################################################
+# Function to export the recorded ADC calibration in a MAUS friendly
+# format for use...
+########################################################################
+def ExportADCCalibrationMAUS(FEChannels, output_filename):
+    """
+    Generate a list of dictionarys for calibration data, using
+    the data stored in the FEChannels. Some (final) sanity checks are made
+    during this process
+    
+    "bank", "channel", "adc_pedestal", "adc_gain", "tdc_pedestal", "tdc_gain"
+    """
+    
+    output_list = []
+
+    # ADC Gain limits:
+    low_gain = 2
+    high_gain = 30
+    
+    for FEChannel in FEChannels:
+        
+        Filled = False
+        
+        # A VLSB bank contains two modules, channels 0-127 (inclusive)
+        # Fix the numbering:
+        output = {}
+        output["bank"] = FEChannel.BankUID
+        output["channel"] = FEChannel.BankChannel
+
+        output["adc_pedestal"] = FEChannel.ADC_Pedestal
+        output["adc_gain"] = FEChannel.ADC_Gain
+        
+        # Check the adc gain is within limits...
+        if (output["adc_gain"] < low_gain) or (output["adc_gain"] > high_gain):
+            if output["adc_gain"] > 1E-3:
+                print ("Bad Gain found - Channel %i"%FEChannel.ChannelUID)
+            output["adc_pedestal"] = 0.0
+            output["adc_gain"] = 0.0
+           
+             
+        # Put "nothing" in the tdc data. This should  mean no data can be recovered, 
+        # which is good because there is no calibration yet.
+        output["tdc_pedestal"] = 0.0
+        output["tdc_gain"] = 0.0
+        
+        output_list.append(output)
+
+    # Set json encodrt to round to 2 decimal places:
+    json.encoder.FLOAT_REPR = lambda o: format(o, '.2f')
+    # Write the output list
+    try:
+        with open(output_filename,"w") as f:
+            json.dump(output_list,f)
+    except:
+        print ("Unable to save status file - Generating an empty status to start from")
+
+    json.encoder.FLOAT_REPR = lambda o: format(o, '.6f')
+    
+    print ("Saved maus calibration to: %s"%output_filename)
+    
+    return
 
 if __name__ == "__main__":
     
@@ -300,5 +361,35 @@ if __name__ == "__main__":
     status = LoadCalibrationStatus(sys.argv[1])
     
     
+########################################################################
+# Function to load a pedcalib run:
+########################################################################
+
+def LoadPedCalib(folder_path):
+    """
+    Function to load a folder containing pedestal calibration
+    data, using the metadata.
+    """
+    with open(os.path.join(folder_path, "runconfig.json"),"r") as f:
+        runconfig = json.load(f)
     
+    # Output histograms [noled, led]
+    histograms = [None,None]
+    
+    for run in runconfig:
+        ledid = 1 if len(run["led_pattern:"]) > 0 else 0
         
+        for filename in [run["tmp_filename_upstream"],\
+                         run["tmp_filename_downstream"]]:
+            
+            loaded_hists = TrDAQReader.TrDAQRead(os.path.join(folder_path,filename))
+            if (histograms[ledid] is None):
+                histograms[ledid] = loaded_hists["RawADCs"]
+            else:
+                histograms[ledid].Add(loaded_hists["RawADCs"])
+                
+    return histograms
+            
+        
+        
+    

@@ -482,6 +482,22 @@ class BiasUIMainFrame( ROOT.TGMainFrame ):
         
         self.Canvas.GetCanvas().Update()
         
+    # Function to update the fitted values by hand...
+    def UpdateFromFit(self):
+        pass
+        
+        # Extract fit data:
+        fitfunc = self.hist.GetFunction("PrevFitTMP")
+        
+        if fitfunc:
+            
+            # Estimate gain/pedestal:
+            pedestal = fitfunc.GetParameter(1)
+            gain = fitfunc.GetParameter(4) - fitfunc.GetParameter(1)
+            
+            # Update Channel:
+            
+            
 
 if __name__ == "__main__":
     

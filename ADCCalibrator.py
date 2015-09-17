@@ -21,35 +21,137 @@ import FECalibrationUtils
 import FrontEndChannel
 import TrDAQReader
 from LightYieldEstimator import LightYieldEstimator
-
-
-
+import ConfigParser
 
 
 # Copy of all data needed for adc calibrations:
 class ADCCalibration:
-    
-########################################################################
-# Data Objects
-########################################################################
-   
-    # Status of calibration
-    status = None
-    
-    # Front end channel calibrations
-    FEChannels = None
-    
-    # External LED hisrograms (0-8192 channels)
-    # ROOT Objects - not json compatile, could need stripping
-    ExtLEDHist = None
-    ExtNoLEDHist = None
-    
-    # Internal LED Histograms (0-8192 channels)
-    # ROOT Objects - not json compatile, could need stripping
-    IntLEDHist = None
-    IntNoLEDHist = None
-    
 
+    def __init__(self):
+
+        # Status of calibration
+        self.status = None
+        
+        # Front end channel calibrations
+        self.FEChannels = None
+        
+        # External LED hisrograms (0-8192 channels)
+        # ROOT Objects - not json compatile, could need stripping
+        self.ExtLEDHist = None
+        self.ExtNoLEDHist = None
+        
+        # Internal LED Histograms (0-8192 channels)
+        # ROOT Objects - not json compatile, could need stripping
+        self.IntLEDHist = None
+        self.IntNoLEDHist = None
+        
+        # Store of the config:
+        self.config = None
+
+
+    def Load(self,config):
+        """
+        Load a calibration from a config.
+        """    
+        self.config = config
+        
+        # Load the status:
+        self.status = FECalibrationUtils.LoadCalibrationStatus(config["path"])
+        
+        #Try to load an existing calibration - or make a fresh
+        try:
+            self.FEChannels = FECalibrationUtils.LoadFEChannelList(os.path.join(config["path"],self.config["FECalibrations"]))
+            print ("Loaded existing FECalibrations %s"%self.config["FECalibrations"])
+        except:
+            self.FEChannels = FECalibrationUtils.GenerateFEChannelList()
+            print ("No existing FECalibrations found... Generated some empty data")
+
+   
+    def LoadExtras(self):
+        # Load and apply bias settings:    
+        if not ("BiasStored" in  self.status) or ( self.status["BiasStored"] == False):
+            self.ApplyBiases()
+            
+        # Apply bad channels list to the data:
+        if not ("BadFE" in  self.status) or ( self.status["BadFE"] == False):
+            self.ApplyBadFrontEnds()
+            
+        # Apply tracker mapping to data:
+        if not ("Mapped" in self.status) or (self.status["Mapped"] == False):
+            self.ApplyMapping()
+
+        
+    def ApplyBiases(self):
+        try:
+            bias_path = os.path.join(self.config["path"], self.config["Biases_Filename"])
+            FECalibrationUtils.ApplyBiasData(self.FEChannels, bias_path)
+            self.status["BiasStored"] = True
+            print ("Loaded Biases from file: %s"%bias_path)
+        except:
+            print ("Failed to load Biases, no problem, igonoring.")
+
+            
+    def ApplyBadFrontEnds(self):    
+        try:
+            badfe_filename = os.path.join(config["path"], config["BadFE_Filename"])
+            FECalibrationUtils.ApplyBadChannels(self.FEChannels, badfe_filename)
+            self.status["BadFE"] = True
+            print ("Loaded Bad FE channels from: %s"%badfe_filename)
+        except:
+            print ("Failed to Bad FE channels, no problem, igonoring.")
+
+    
+    def ApplyMapping(self):    
+        try:
+            mapping_filename = os.path.join(self.config["path"], self.config["Mapping_Filename"])
+            TrackerMap = FECalibrationUtils.LoadMappingFile (mapping_filename)
+            FECalibrationUtils.UpdateTrackerMapping(self.FEChannels, TrackerMap)
+            self.status["Mapped"] = True
+            print ("Loaded Mapping from: %s"%mapping_filename)
+        except:
+            print "Failed to load Mapping file, essensial, terminating."
+            raise 
+
+    
+    def LoadInternalLED(self):
+        
+        if not (self.IntLEDHist is None or self.IntNoLEDHist is None):
+            print ("Led data is already collected")
+            return
+        
+        try:
+            print ("Attempting to load internal led files ...")
+            
+            if len(self.config["InternalLED"]) == 0:
+                raise ("No Files to load!")
+            elif "pedcalib" in self.config["InternalLED"][0]:
+                self.IntNoLEDHist, self.IntLEDHist =\
+                    FECalibrationUtils.LoadPedCalib(os.path.join(self.config["DataPath"],self.config["InternalLED"][0]["pedcalib"]))
+            else:
+            
+                # Load the external LED list:
+                leds_dict = self.config["InternalLED"]
+                for d in leds_dict:
+                    d["filepath"] = os.path.join(self.config["DataPath"],d["filename"])
+                
+                # Load the files:
+                internal_files = [d for d in leds_dict if d["led"]]
+                self.IntLEDHist = TrDAQReader.TrMultiDAQRead(internal_files , "InternalLED")
+                notinternal_files = [d for d in leds_dict if not d["led"]]
+                self.IntNoLEDHist = TrDAQReader.TrMultiDAQRead(notinternal_files , "InternalNoLED")
+                
+                
+            if ( self.IntNoLEDHist is None ) or ( self.IntLEDHist is None):
+                print ("error loading internal led files")
+            else:
+                print ("... done loading external files")
+        
+        except:
+            raise
+    
+            
+    # TODO: It may be possible to include the external LED stuff in here also,
+    # but there is no motivation for this at this time.
 
 # Main function for running the ADC Calibrations,
 # requires a configuration file loaded.
@@ -104,7 +206,7 @@ def main(config, ForceIntLEDLoad=True):
             print "Failed to load Mapping file, essensial, terminating."
             raise 
         
-    # Disable internal LED processing:
+    # Disable external LED processing:
     # WARNING: Remove in final version.
     Calibration.status["ExternalLED"] = True
     
@@ -200,11 +302,6 @@ def main(config, ForceIntLEDLoad=True):
                 # (ie. those not connected).
                 p_value =  PedHist_NoLED.Chi2Test(PedHist_LED, "UUP")
                 
-                print (p_value)
-                if (p_value > 0.001):
-                    print ("HERE")
-                    # Better than 5% chane histos are NEqual.
-                
             # Done with external LED, update statuses:
             Calibration.status["ExternalLED"] = True
             
@@ -214,20 +311,33 @@ def main(config, ForceIntLEDLoad=True):
     # Next task, process internal LED:
     if not ("InternalLED" in Calibration.status) or (Calibration.status["InternalLED"] == False)\
         or ForceIntLEDLoad:
+        
         try:
             print ("Attempting to load internal led files ...")
             
-            # Load the external LED list:
-            leds_dict = config["InternalLED"]
-            for d in leds_dict:
-                d["filepath"] = os.path.join(config["DataPath"],d["filename"])
+            if len(config["InternalLED"]) == 0:
+                raise ("No Files to load!")
+            elif "pedcalib" in config["InternalLED"][0]:
+                Calibration.IntNoLEDHist, Calibration.IntLEDHist =\
+                    FECalibrationUtils.LoadPedCalib(os.path.join(config["DataPath"],config["InternalLED"][0]["pedcalib"]))
+            else:
             
-            # Load the files:
-            internal_files = [d for d in leds_dict if d["led"]]
-            Calibration.IntLEDHist = TrDAQReader.TrMultiDAQRead(internal_files , "InternalLED")
-            notinternal_files = [d for d in leds_dict if not d["led"]]
-            Calibration.IntNoLEDHist = TrDAQReader.TrMultiDAQRead(notinternal_files , "InternalNoLED")
-            print ("... done loading external files")
+                # Load the external LED list:
+                leds_dict = config["InternalLED"]
+                for d in leds_dict:
+                    d["filepath"] = os.path.join(config["DataPath"],d["filename"])
+                
+                # Load the files:
+                internal_files = [d for d in leds_dict if d["led"]]
+                Calibration.IntLEDHist = TrDAQReader.TrMultiDAQRead(internal_files , "InternalLED")
+                notinternal_files = [d for d in leds_dict if not d["led"]]
+                Calibration.IntNoLEDHist = TrDAQReader.TrMultiDAQRead(notinternal_files , "InternalNoLED")
+                
+                
+            if ( Calibration.IntNoLEDHist is None ) or ( Calibration.IntLEDHist is None):
+                print ("error loading internal led files")
+            else:
+                print ("... done loading external files")
         
         except:
             raise
@@ -247,7 +357,7 @@ def main(config, ForceIntLEDLoad=True):
                 # Get single channel hisrogram, and nuke all channels below 15,
                 # to stop peaks being found there in the event there is hits there.
                 PedHist_LED = Calibration.IntLEDHist.ProjectionY("th1d_led",ChannelUID+1,ChannelUID+1,"")
-                for i in range (15):
+                for i in range (10):
                     PedHist_LED.SetBinContent(i, 0.0)
                 
                 # Check for data, if no data then flag it in the "Issues" array.
