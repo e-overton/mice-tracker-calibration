@@ -1,0 +1,247 @@
+ChannelUID,Issue,Comment,Severity
+82,VLPC,Narrow pedestal with high bias,10
+461,VLPC,Narrow pedestal with high bias,10
+711,VLPC,Narrow pedestal with high bias,10
+788,VLPC,Narrow pedestal with high bias,10
+1026,VLPC,Close to breakdown.,5
+1089,VLPC,Narrow pedestal with high bias,10
+1148,VLPC,Breakdown with rest of module OK,10
+1361,VLPC,Narrow pedestal with high bias,10
+1457,VLPC,Narrow pedestal with high bias,10
+1506,VLPC,Noisy could be caused by neighbouring breakdown.,5
+1507,VLPC,Noisy could be caused by neighbouring breakdown.,5
+1508,VLPC,Noisy could be caused by neighbouring breakdown.,5
+1509,VLPC,Noisy could be caused by neighbouring breakdown.,5
+1510,VLPC,Breakdown with rest of module OK,10
+1669,VLPC,Narrow pedestal with high bias,10
+1784,VLPC,Narrow pedestal with high bias,10
+1873,VLPC,Narrow pedestal with high bias,10
+2144,VLPC,Narrow pedestal with high bias,10
+2145,VLPC,Narrow pedestal with high bias,10
+2146,VLPC,Narrow pedestal with high bias,10
+2147,VLPC,Narrow pedestal with high bias,10
+2148,VLPC,Narrow pedestal with high bias,10
+2149,VLPC,Narrow pedestal with high bias,10
+2150,VLPC,Narrow pedestal with high bias,10
+2151,VLPC,Narrow pedestal with high bias,10
+2304,VLPC,Narrow pedestal with high bias,10
+2305,VLPC,Narrow pedestal with high bias,10
+2305,VLPC,Narrow pedestal with high bias,10
+2309,VLPC,Narrow pedestal with high bias,10
+2310,VLPC,Noisy above rest of module.,5
+2313,VLPC,Narrow pedestal with high bias,10
+2314,VLPC,Narrow pedestal with high bias,10
+2320,VLPC,Narrow pedestal with high bias,10
+2355,VLPC,Noisy above rest of module.,5
+2357,VLPC,Narrow pedestal with high bias,10
+2361,VLPC,Narrow pedestal with high bias,10
+2362,VLPC,Narrow pedestal with high bias,10
+2365,VLPC,Narrow pedestal with high bias,10
+2366,VLPC,Narrow pedestal with high bias,10
+2748,VLPC,Narrow pedestal with high bias,10
+2757,VLPC,Narrow pedestal with high bias,10
+2761,VLPC,Narrow pedestal with high bias,10
+2765,VLPC,Narrow pedestal with high bias,10
+2766,VLPC,Narrow pedestal with high bias,10
+2801,VLPC,Noisy above rest of module.,5
+2816,Electronic,Possible Bit erros Not gaussian,8
+2821,VLPC,Narrow pedestal with high bias,10
+2862,VLPC,Narrow pedestal with high bias,10
+2821,VLPC,Narrow pedestal with high bias,10
+2876,VLPC,Narrow pedestal with high bias,10
+2878,VLPC,Narrow pedestal with high bias,10
+2875,VLPC,Noisy ,5
+3404,VLPC,Narrow pedestal with high bias,10
+3520,VLPC,Narrow pedestal with high bias,10
+3569,VLPC,Narrow pedestal with high bias,10
+3580,VLPC,Narrow pedestal with high bias,10
+3633,VLPC,Narrow pedestal with high bias,10
+3642,VLPC,Narrow pedestal with high bias,10
+3644,VLPC,Narrow pedestal with high bias,10
+4080,VLPC,Narrow pedestal with high bias,10
+4081,VLPC,Narrow pedestal with high bias,10
+4082,VLPC,Narrow pedestal with high bias,10
+4083,VLPC,Narrow pedestal with high bias,10
+4084,VLPC,Narrow pedestal with high bias,10
+4085,VLPC,Narrow pedestal with high bias,10
+4086,VLPC,Narrow pedestal with high bias,10
+4087,VLPC,Narrow pedestal with high bias,10
+4217,VLPC,Noisy ,5
+4218,VLPC,Noisy ,5
+4219,VLPC,Noisy ,5
+4220,VLPC,Noisy ,5
+4221,VLPC,Noisy ,5
+4222,VLPC,Noisy ,5
+4223,VLPC,Noisy ,5
+4224,VLPC,Noisy ,5
+4225,Electronics,Bit errors,8
+4288,Electronics,Bit errors,8
+4352,Electronics,Bit errors,8
+5023,VLPC,Narrow pedestal with high bias,10
+5157,VLPC,Narrow pedestal with high bias,10
+5495,VLPC,Narrow pedestal with high bias,10
+5556,VLPC,Narrow pedestal with high bias,10
+5744,VLPC,Noisy,8
+5745,VLPC,Noisy,8
+5746,VLPC,Noisy,8
+5747,VLPC,Noisy,8
+5748,VLPC,Noisy,8
+5749,VLPC,Noisy,8
+5750,VLPC,Noisy,8
+5751,VLPC,Noisy,8
+5752,VLPC,Noisy,8
+5753,VLPC,Noisy,8
+5754,VLPC,Noisy,8
+5755,VLPC,Noisy,8
+5756,VLPC,Noisy,8
+5757,VLPC,Noisy,8
+5758,VLPC,Noisy,8
+5759,VLPC,Noisy,8
+5816,VLPC,Narrow pedestal with high bias,10
+5817,VLPC,Narrow pedestal with high bias,10
+5818,VLPC,Narrow pedestal with high bias,10
+5819,VLPC,Narrow pedestal with high bias,10
+5820,VLPC,Narrow pedestal with high bias,10
+5821,VLPC,Narrow pedestal with high bias,10
+5822,VLPC,Narrow pedestal with high bias,10
+5823,VLPC,Narrow pedestal with high bias,10
+5824,VLPC,Narrow pedestal with high bias,10
+5856,Electronics,Bad TripT,10
+5857,Electronics,Bad TripT,10
+5858,Electronics,Bad TripT,10
+5859,Electronics,Bad TripT,10
+5860,Electronics,Bad TripT,10
+5861,Electronics,Bad TripT,10
+5862,Electronics,Bad TripT,10
+5863,Electronics,Bad TripT,10
+5864,Electronics,Bad TripT,10
+5865,Electronics,Bad TripT,10
+5866,Electronics,Bad TripT,10
+5867,Electronics,Bad TripT,10
+5868,Electronics,Bad TripT,10
+5869,Electronics,Bad TripT,10
+5870,Electronics,Bad TripT,10
+5871,Electronics,Bad TripT,10
+5872,Electronics,Bad TripT,10
+5873,Electronics,Bad TripT,10
+5874,Electronics,Bad TripT,10
+5875,Electronics,Bad TripT,10
+5876,Electronics,Bad TripT,10
+5877,Electronics,Bad TripT,10
+5878,Electronics,Bad TripT,10
+5879,Electronics,Bad TripT,10
+5880,Electronics,Bad TripT,10
+5881,Electronics,Bad TripT,10
+5882,Electronics,Bad TripT,10
+5883,Electronics,Bad TripT,10
+5884,Electronics,Bad TripT,10
+5885,Electronics,Bad TripT,10
+5886,Electronics,Bad TripT,10
+5887,Electronics,Bad TripT,10
+6104,VLPC,Breakdown with rest of module OK,10
+6209,VLPC,Narrow pedestal with high bias,10
+6215,VLPC,Narrow pedestal with high bias,10
+6272,VLPC,Narrow pedestal with high bias,10
+6495,VLPC,Narrow pedestal with high bias,10
+6323,VLPC,Narrow pedestal with high bias,10
+6324,VLPC,Narrow pedestal with high bias,10
+6497,VLPC,Noisy could be caused by neighbouring breakdown.,5
+6498,VLPC,Noisy could be caused by neighbouring breakdown.,5
+6499,VLPC,Noisy could be caused by neighbouring breakdown.,5
+6500,VLPC,Breakdown with rest of module OK,10
+6501,VLPC,Noisy could be caused by neighbouring breakdown.,5
+6502,VLPC,Noisy could be caused by neighbouring breakdown.,5
+6577,VLPC,Not gaussian with no pe,10
+6581,VLPC,Narrow pedestal with high bias,10
+6703,VLPC,Narrow pedestal with high bias,10
+6784,Electronics,Narrow peds odd features,10
+6785,Electronics,Narrow peds odd features,10
+6786,Electronics,Narrow peds odd features,10
+6787,Electronics,Narrow peds odd features,10
+6788,Electronics,Narrow peds odd features,10
+6789,Electronics,Narrow peds odd features,10
+6790,Electronics,Narrow peds odd features,10
+6791,Electronics,Narrow peds odd features,10
+6792,Electronics,Narrow peds odd features,10
+6793,Electronics,Narrow peds odd features,10
+6794,Electronics,Narrow peds odd features,10
+6795,Electronics,Narrow peds odd features,10
+6796,Electronics,Narrow peds odd features,10
+6797,Electronics,Narrow peds odd features,10
+6798,Electronics,Narrow peds odd features,10
+6799,Electronics,Narrow peds odd features,10
+6800,Electronics,Narrow peds odd features,10
+6801,Electronics,Narrow peds odd features,10
+6802,Electronics,Narrow peds odd features,10
+6803,Electronics,Narrow peds odd features,10
+6804,Electronics,Narrow peds odd features,10
+6805,Electronics,Narrow peds odd features,10
+6806,Electronics,Narrow peds odd features,10
+6807,Electronics,Narrow peds odd features,10
+6808,Electronics,Narrow peds odd features,10
+6809,Electronics,Narrow peds odd features,10
+6810,Electronics,Narrow peds odd features,10
+6811,Electronics,Narrow peds odd features,10
+6812,Electronics,Narrow peds odd features,10
+6813,Electronics,Narrow peds odd features,10
+6814,Electronics,Narrow peds odd features,10
+6815,Electronics,Narrow peds odd features,10
+6816,Electronics,Narrow peds odd features,10
+6817,Electronics,Narrow peds odd features,10
+6818,Electronics,Narrow peds odd features,10
+6819,Electronics,Narrow peds odd features,10
+6820,Electronics,Narrow peds odd features,10
+6821,Electronics,Narrow peds odd features,10
+6822,Electronics,Narrow peds odd features,10
+6823,Electronics,Narrow peds odd features,10
+6824,Electronics,Narrow peds odd features,10
+6825,Electronics,Narrow peds odd features,10
+6826,Electronics,Narrow peds odd features,10
+6827,Electronics,Narrow peds odd features,10
+6828,Electronics,Narrow peds odd features,10
+6829,Electronics,Narrow peds odd features,10
+6830,Electronics,Narrow peds odd features,10
+6831,Electronics,Narrow peds odd features,10
+6832,Electronics,Narrow peds odd features,10
+6833,Electronics,Narrow peds odd features,10
+6834,Electronics,Narrow peds odd features,10
+6835,Electronics,Narrow peds odd features,10
+6836,Electronics,Narrow peds odd features,10
+6837,Electronics,Narrow peds odd features,10
+6838,Electronics,Narrow peds odd features,10
+6839,Electronics,Narrow peds odd features,10
+6840,Electronics,Narrow peds odd features,10
+6841,Electronics,Narrow peds odd features,10
+6842,Electronics,Narrow peds odd features,10
+6843,Electronics,Narrow peds odd features,10
+6844,Electronics,Narrow peds odd features,10
+6845,Electronics,Narrow peds odd features,10
+6846,Electronics,Narrow peds odd features,10
+6847,Electronics,Narrow peds odd features,10
+6879,VLPC,Narrow pedestal with high bias,10
+6890,VLPC,Narrow pedestal with high bias,10
+6893,VLPC,Narrow pedestal with high bias,10
+7004,VLPC,Not gaussian with no pe,10
+7192,VLPC,Narrow pedestal with high bias,10
+7200,VLPC,Narrow pedestal with high bias,10
+7313,VLPC,Narrow pedestal with high bias,10
+7552,VLPC,Narrow pedestal with high bias,10
+7553,VLPC,Narrow pedestal with high bias,10
+7554,VLPC,Narrow pedestal with high bias,10
+7555,VLPC,Narrow pedestal with high bias,10
+7556,VLPC,Narrow pedestal with high bias,10
+7557,VLPC,Narrow pedestal with high bias,10
+7558,VLPC,Narrow pedestal with high bias,10
+7560,VLPC,Narrow pedestal with high bias,10
+7693,VLPC,large signal at saturation,10
+7744,VLPC,Narrow pedestal with high bias,10
+7745,VLPC,Narrow pedestal with high bias,10
+7746,VLPC,Narrow pedestal with high bias,10
+7747,VLPC,Narrow pedestal with high bias,10
+7748,VLPC,Narrow pedestal with high bias,10
+7749,VLPC,Narrow pedestal with high bias,10
+7750,VLPC,Narrow pedestal with high bias,10
+7752,VLPC,Narrow pedestal with high bias,10
+7806,VLPC,Narrow pedestal with high bias,10
+7867,VLPC,Narrow pedestal with high bias,10
+8184,VLPC,Narrow pedestal with high bias,10

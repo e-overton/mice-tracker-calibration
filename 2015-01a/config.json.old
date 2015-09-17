@@ -1,0 +1,26 @@
+{
+    "Biases_Filename":"Biases.csv",
+    "BadFE_Filename":"BadFE.csv",
+    "Mapping_Filename":"scifi_mapping_2015-06-18.txt",
+    "FECalibrations":"fechannels.json",
+    "DataPath":"/mnt/mice/miceiocpctk/tracker",
+    "ExternalLED":
+    [
+    	{"filename":"data/calib/upstream/20150528a/c/cryo1_lhled30_1", "start":0, "stop":1024, "led":true, "offset":0},
+    	{"filename":"data/calib/upstream/20150528a/c/cryo1_noled_2", "start":0, "stop":1024, "led":false, "offset":0},
+    	{"filename":"data/calib/upstream/20150528a/d/cryo1_rhled40_4", "start":1024, "stop":2048, "led":true, "offset":0},
+    	{"filename":"data/calib/upstream/20150528a/d/cryo1_noled_4", "start":1024, "stop":2048, "led":false, "offset":0},
+    	{"filename":"data/calib/upstream/20150528a/d/cryo2_lhled40_2", "start":2048, "stop":3072, "led":true, "offset":0},
+    	{"filename":"data/calib/upstream/20150528a/d/cryo2_noled_2", "start":2048, "stop":3072, "led":false, "offset":0},
+    	{"filename":"data/calib/upstream/20150528a/c/cryo2_rhled40_1", "start":3072, "stop":4096, "led":true, "offset":0},
+    	{"filename":"data/calib/upstream/20150528a/c/cryo2_noled_2", "start":3027, "stop":4096, "led":false, "offset":0}
+    ],
+    "InternalLED":
+    [
+    	{"filename":"data/peds/upstream/ped_20150611_171242", "start":0, "stop":4096, "led":true, "offset":0},
+    	{"filename":"data/peds/upstream/ped_20150611_153637", "start":0, "stop":4096, "led":false, "offset":0},
+    	{"filename":"data/peds/downstream/ped_20150618_130131", "start":4096, "stop":8192, "led":true, "offset":4096},
+    	{"filename":"data/peds/downstream/ped_20150618_135741", "start":4096, "stop":8192, "led":false, "offset":4096}
+    
+    ]
+}
