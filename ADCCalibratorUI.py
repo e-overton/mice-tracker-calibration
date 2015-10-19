@@ -330,6 +330,7 @@ class ADCUIMainFrame( ROOT.TGMainFrame ):
             SourceHist.SetNameTitle("h", "Channel %i"%ChannelID)
             SourceHist.Draw()
             self.th = SourceHist
+            self.th.GetXaxis().SetRangeUser(0,100)
         
             # Add peak markers:
             max_h = SourceHist.GetBinContent(SourceHist.GetMaximumBin())
@@ -560,6 +561,9 @@ class ADCUIMainFrame( ROOT.TGMainFrame ):
                 if issue["Severity"] == 4 and issue["Issue"] ==  "InternalLED":
                     issue["Severity"] = 0  
                     issue["Comment"] += ", Hand Fitted."
+                elif issue["Severity"] > 0 and issue["Issue"] ==  "Calibration Update":
+                    issue["Severity"] = 0  
+                    issue["Comment"] += ", Hand Fitted."
                     
         # Store fit values:
         self.fitvalues = [fitfunc.GetParameter(i) for i in range(6)]
@@ -569,7 +573,7 @@ class ADCUIMainFrame( ROOT.TGMainFrame ):
     def RepeatLastFit(self):
         
         try:
-            upthresh = self.fitvalues[1] + (self.fitvalues[4] - self.fitvalues[1])*1.5
+            upthresh = self.fitvalues[1] + (self.fitvalues[4] - self.fitvalues[1])*1.3
         
             self.fitfunction = ROOT.TF1("PrevFitTMP","gaus+gaus(3)",0,upthresh)
             [self.fitfunction.SetParameter(i, self.fitvalues[i]) for i in range(6)]
@@ -632,7 +636,13 @@ if __name__ == "__main__":
         raise
     
     # Run the main calibraton now:
-    Calibration = ADCCalibrator.main (config)
+    Calibration = ADCCalibrator.ADCCalibration()
+    Calibration.Load(config)
+    Calibration.LoadInternalLED()
+    
+    #Calibration.Load(config)
+    #Calibration = ADCCalibrator.main (config)
+    #Calibration.LoadInternalLED()
     
     # Create window:
     window = ADCUIMainFrame( ROOT.gClient.GetRoot(), 800, 600 )

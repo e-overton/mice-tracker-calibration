@@ -444,9 +444,9 @@ def main(config, ForceIntLEDLoad=True):
     
         
     # Save output:
-    FECalibrationUtils.SaveFEChannelList(Calibration.FEChannels, os.path.join(config["path"], config["FECalibrations"]))
+    #FECalibrationUtils.SaveFEChannelList(Calibration.FEChannels, os.path.join(config["path"], config["FECalibrations"]))
     # Save Status:
-    FECalibrationUtils.SaveCalibrationStatus(Calibration.status, config["path"])
+    #FECalibrationUtils.SaveCalibrationStatus(Calibration.status, config["path"])
         
     # Final Task, return Calibration:
     return Calibration
@@ -475,12 +475,6 @@ if __name__ == "__main__":
     # Run the main calibraton now:
     Calibration = main (config)
     
-    for i in range(1,40):
-        FECalibrationUtils.EditChannelData(Calibration.FEChannels, i)
     
-    #print (Calibration.FEChannels[400].getMap())
-    
-    #Calibration.ExtLEDHist.Draw()
-    
-    raw_input("Script complete, press enter to continue")
-    print ("Exiting.")
+    #raw_input("Script complete, press enter to continue")
+    print ("ADC Calibration complete, Exiting.")

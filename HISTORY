@@ -2,13 +2,15 @@ Tracker Calibration History:
 
 2015-01a - First run in MICE Hall
  
->> Biases: 
-   > set to 2.3% above the 1.pe peak (upstream).
-   > set to 3.5% above the 1.pe peak (downstream).
+>> Biases:
+   > First pass in hall:
+      - set to 2.3% above the 1.pe peak (upstream).
+      - set to 3.5% above the 1.pe peak (downstream).
 
 >> Bad FE Channels:
-   >
-   >
+   > 2015-01a: Orginal bad channel list found from external LED.
 
 >> ADC Calibrations:
-  
+  > 2015-01a: Orignal Bias Calibration, Valid for 01a straight tracks
+  > 2015-01a-swapped: Channel swap in tracker, see issue tracker.
+  > 20150912: New calibration for septermber MDR, beam running.

@@ -202,5 +202,7 @@ if __name__ == "__main__":
     FECalibrationUtils.SaveFEChannelList(CalibrationNew.FEChannels, os.path.join(newconfig["path"], newconfig["FECalibrations"]))
     FECalibrationUtils.SaveCalibrationStatus(CalibrationNew.status, newconfig["path"])
     
+    print "Done"
+    
     
     

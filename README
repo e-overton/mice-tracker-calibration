@@ -73,4 +73,23 @@ pyROOT.
    processing.
    This will also export online monitoring plots...
    
+<b>ADC CALIBRATION FROM UPDATE:</b>
+
+1) Make a new working folder like 2015-01a, using the
+   config there as a template. Copy the Biases.txt and BadFE.txt
+   files into the folder for using. Modify config.json as needed,
+   Note that InternalLED should point at the new internal LED data.
+   
+2) Launch ADCCalibrationUpdate with the arguments:
+   <old calibration folder> <new calibration folder>
+   This will use the old calibration to generate a new calibration.
+   
+   eg: python ADCCalibrationUpdate 2015-01-a 20150912
+   
+3) Validate the calibration using the ADCCalibratiorUI script,
+   giving the argument as the new calibration folder.
+   
+   eg: python ADCCalibratiorUI 20150912
+   
+   
   
