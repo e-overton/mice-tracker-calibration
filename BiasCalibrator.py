@@ -58,7 +58,7 @@ def main ():
         skip = True
     
     campaign = None
-    ChannelIDs = range(0,4*1024)# +  range(7*512,8*512)
+    ChannelIDs = range(0,8*1024) # +  range(7*512,8*512)
     ModuleIDs = GenerateModules(ChannelIDs)
     tempfilename = "stage1.json"
     
@@ -93,7 +93,7 @@ def main ():
     # Orignal code used "Highest.." now using by weight:
     #CalibrateModules_Highest(campaign, ModuleIDs, 0.02)
     
-    CalibrateModules_Weight(campaign, ModuleIDs, LinearWeight, {"target":1.5*0.023})
+    CalibrateModules_Weight(campaign, ModuleIDs, LinearWeight, {"target":0.023})
     #CalibrateModules_Weight(campaign, ModuleIDs, LinearWeightLimit, {"target":0.023, "limit":0.015})
     # Note: david uses a 2% target for the noise in Lab7. This was a 140ns integration
     # gate, in the hall we are using a 165ns integration gate, so this has been
