@@ -350,10 +350,11 @@ def main(config, ForceIntLEDLoad=True):
         
         try:    
             # Use the files to generate an LYE calibration:
-            for FEChannel in Calibration.FEChannels[1190:1210]:
+            for FEChannel in Calibration.FEChannels:
                 
                 # Channel to process:
                 ChannelUID = FEChannel.ChannelUID
+                print "Processing channel: ", ChannelUID
             
                 # Get single channel hisrogram, and nuke all channels below 15,
                 # to stop peaks being found there in the event there is hits there.
