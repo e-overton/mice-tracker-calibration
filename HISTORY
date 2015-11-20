@@ -3,9 +3,12 @@ Tracker Calibration History:
 2015-01a - First run in MICE Hall
  
 >> Biases:
-   > First pass in hall:
+   > First pass in hall (June 2015)
       - set to 2.3% above the 1.pe peak (upstream).
       - set to 3.5% above the 1.pe peak (downstream).
+   > Second pass of bias calibrations (Nov  2015):
+      - Set both US and DS to 2.3% above the single PE peak.
+       
 
 >> Bad FE Channels:
    > 2015-01a: Orginal bad channel list found from external LED.

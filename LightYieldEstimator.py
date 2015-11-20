@@ -76,7 +76,7 @@ class LightYieldEstimator:
         
         
     ####################################################################
-    def process(self, channel_histogram, ledLYE=None):
+    def process(self, channel_histogram, ledLYE=None, poissonfit=None):
         """
         Process a histogram to locate each of the photo peaks and
         then use this to estimate stuff:
@@ -100,44 +100,51 @@ class LightYieldEstimator:
             self.ChannelState = "Breakdown"
             return
         
-        # Using a ROOT TSpectrum, find the PE peaks in this channel's
-        # ADC distribution, then store the positions of the peaks in self.Peaks
-        # 2 = minimum peak sigma, 0.0025  = minimum min:max peak height ratio - see TSpectrum
-        #nPeaks = spectrum.Search(ch, 1.95,"", 0.005 ) # setting for finding peaks on bias calibration sweep.
+        if poissonfit is not None:
+            # Load peaks from poisson fit:
+            self.gain = poissonfit["fitpar"]["gain"]
+            self.offset = poissonfit["fitpar"]["pedestal"]
+            self.Peaks = [self.offset + i*self.gain for i in range(5)]
+            nPeaks = len (self.Peaks)    
+        else:
+            # No poission fitted peaks available, use traditional method:
+            # Using a ROOT TSpectrum, find the PE peaks in this channel's
+            # ADC distribution, then store the positions of the peaks in self.Peaks
+            # 2 = minimum peak sigma, 0.0025  = minimum min:max peak height ratio - see TSpectrum
+            #nPeaks = spectrum.Search(ch, 1.95,"", 0.005 ) # setting for finding peaks on bias calibration sweep.
+            for sigmas,thresholds in zip([3.0,2.0,1.5,1.0,0.5],[0.05,0.05,0.01,0.005,0.005]):
+                spectrum = ROOT.TSpectrum()
+                nPeaks = spectrum.Search(ch, sigmas,"", thresholds) # setting for finding peaks on bias calibration sweep.
+                if nPeaks > 1:
+                    break
         
-        for sigmas,thresholds in zip([3.0,2.0,1.5,1.0,0.5],[0.05,0.05,0.01,0.005,0.005]):
-            spectrum = ROOT.TSpectrum()
-            nPeaks = spectrum.Search(ch, sigmas,"", thresholds) # setting for finding peaks on bias calibration sweep.
-            if nPeaks > 1:
-                break
-        
-        #nPeaks = 0
-        #nPeaks = spectrum.Search(ch, 1.6,"nobackground,noMarkov", 0.001 )
-        
-        # If one peaks was found, then its probable that things were under biased..
-        if (nPeaks == 0):
-            print ("NoPeaks Detected.")
+            #nPeaks = 0
+            #nPeaks = spectrum.Search(ch, 1.6,"nobackground,noMarkov", 0.001 )
             
-            # Try to find something with the hi-res-search?
-            binsx = ch.GetNbinsX()
-            source = array.array( 'f', [0]*binsx)
-            for bin in range(ch.GetNbinsX()):
-                source[bin] = ch.GetBinContent(bin)
-            
-            dest = array.array( 'f', [0]*binsx )
-            
-            nPeaks = spectrum.Search1HighRes(source, dest, binsx, 1.0, 0.0005, False, 4, True, 3)
-            
+            # If one peaks was found, then its probable that things were under biased..
             if (nPeaks == 0):
-                self.ChannelState = "NoPeaks"
-                return
-        
-        # Load and re-order the peaks...
-        temp_peaks = spectrum.GetPositionX()
-        for p in range(nPeaks): 
-                if (temp_peaks[p] > 1.0):
-                    self.Peaks.append(temp_peaks[p])
-        self.Peaks.sort()
+                print ("NoPeaks Detected.")
+                
+                # Try to find something with the hi-res-search?
+                binsx = ch.GetNbinsX()
+                source = array.array( 'f', [0]*binsx)
+                for bin in range(ch.GetNbinsX()):
+                    source[bin] = ch.GetBinContent(bin)
+                
+                dest = array.array( 'f', [0]*binsx )
+                
+                nPeaks = spectrum.Search1HighRes(source, dest, binsx, 1.0, 0.0005, False, 4, True, 3)
+                
+                if (nPeaks == 0):
+                    self.ChannelState = "NoPeaks"
+                    return
+            
+            # Load and re-order the peaks...
+            temp_peaks = spectrum.GetPositionX()
+            for p in range(nPeaks): 
+                    if (temp_peaks[p] > 1.0):
+                        self.Peaks.append(temp_peaks[p])
+            self.Peaks.sort()
         
         if (nPeaks == 1):
             #self.darkcounts = self.estimateDarkCount(ch)
@@ -183,7 +190,9 @@ class LightYieldEstimator:
         self.ChannelState = "PEPeaks"
         # Calculate Dark Count:
         self.darkcounts_old = self.getDarkCount(ch)
-        self.darkcounts = self.estimateDarkCount(ch)
+        #self.darkcounts = self.estimateDarkCount(ch)
+        self.darkcounts = self.darkcounts_old
+        
         #self.darkcounts = self.darkcounts_old
         #print ("Gain = %.3f"%self.gain)
         

@@ -22,6 +22,7 @@ import FrontEndChannel
 import TrDAQReader
 from LightYieldEstimator import LightYieldEstimator
 import ConfigParser
+import PoissonPeakFitter
 
 
 # Copy of all data needed for adc calibrations:
@@ -349,7 +350,7 @@ def main(config, ForceIntLEDLoad=True):
         
         try:    
             # Use the files to generate an LYE calibration:
-            for FEChannel in Calibration.FEChannels:
+            for FEChannel in Calibration.FEChannels[1190:1210]:
                 
                 # Channel to process:
                 ChannelUID = FEChannel.ChannelUID
@@ -366,52 +367,61 @@ def main(config, ForceIntLEDLoad=True):
                                              "Issue":"InternalLED","Comment":"Failed to find LED Data"})
                         continue
                     
+                # Generate and process the NOLED Data:
+                PedHist_NoLED = Calibration.IntNoLEDHist.ProjectionY("th1d_noled",ChannelUID+1,ChannelUID+1,"")
+                for i in range (15):
+                    PedHist_NoLED.SetBinContent(i, 0.0)
+                    
+                # Check for data, if no data then flag it in the "Issues" array.
+                if (PedHist_NoLED.GetEntries() < 1):
+                        FEChannel.Issues.append("Missing internal NoLED data")
+                        continue
+                
+                LightYield_LED = LightYieldEstimator()
+                LightYield_NoLED = LightYieldEstimator()
+                
+                
+                # ############
+                # Insert poisson fit here.
+                dopoissonfit = True
+                poissonfit = PoissonPeakFitter.combinedfit(PedHist_NoLED, PedHist_LED) if dopoissonfit else None
+                #PoissonPeakFitter.drawfits(poissonfit["fit"], PedHist_NoLED, PedHist_LED)
+                
                 # Data Available, do the fitting processes:
                 # Run std processing on the pedestal histagram.
-                LightYield_LED = LightYieldEstimator()
-                LightYield_LED.process(PedHist_LED)
-        
+                LightYield_LED.process(PedHist_LED, poissonfit=poissonfit)
+                
+                # Fit each peak, and try to improve location:
+                if poissonfit is None:
+                    for p in range(len(LightYield_LED.Peaks)):
+                        PeakFitResults = LightYield_LED.fitPeak(PedHist_LED, p)
+                        # Check each result, and copy only if good:
+                        if (abs(PeakFitResults[1] - LightYield_LED.Peaks[p]) < 3.0) \
+                            and (not math.isnan(PeakFitResults[1])):
+                            LightYield_LED.Peaks[p] = PeakFitResults[1]
+                        else:
+                            print "Warning - Bad LED Fit..."
+                        
                 # Check the state of the output:
                 if LightYield_LED.ChannelState != "PEPeaks":
                     FEChannel.Issues.append({"ChannelUID":ChannelUID, "Severity":4,\
                                              "Issue":"InternalLED","Comment":"Failed to find LED Peaks"})
-                    continue
-                
-                # Fit each peak, and try to improve location:
-                for p in range(len(LightYield_LED.Peaks)):
-                    PeakFitResults = LightYield_LED.fitPeak(PedHist_LED, p)
-                    # Check each result, and copy only if good:
-                    if (abs(PeakFitResults[1] - LightYield_LED.Peaks[p]) < 3.0) \
-                        and (not math.isnan(PeakFitResults[1])):
-                        LightYield_LED.Peaks[p] = PeakFitResults[1]
-                    else:
-                        print "Warning - Bad LED Fit..."
-                        
+                    continue 
+                   
                 # Compute the gain from the peaks, and store object to
                 # main FE channel Data structure...
                 LightYield_LED.gain = LightYield_LED.gainEstimator()
                 LightYield_LED.offset = LightYield_LED.Peaks[0]
+                    
+                LightYield_NoLED.process(PedHist_NoLED, LightYield_LED, poissonfit=poissonfit)
                 
                 FEChannel.ADC_Pedestal = LightYield_LED.offset
                 FEChannel.ADC_Gain = LightYield_LED.gain
                 
                 std_peaks = [LightYield_LED.offset + i*LightYield_LED.gain for i in range(5)]
                 LightYield_LED.peakIntegrals(PedHist_LED, std_peaks)
-                
+            
                 FEChannel.LightYieldIntLED = LightYield_LED.getMap()
-
-                # Generate and process the NOLED Data:
-                PedHist_NoLED = Calibration.IntNoLEDHist.ProjectionY("th1d_noled",ChannelUID+1,ChannelUID+1,"")
-                for i in range (15):
-                    PedHist_NoLED.SetBinContent(i, 0.0)
-                
-                # Check for data, if no data then flag it in the "Issues" array.
-                if (PedHist_NoLED.GetEntries() < 1):
-                        FEChannel.Issues.append("Missing external NoLED data")
-                        continue
-                
-                LightYield_NoLED = LightYieldEstimator()
-                LightYield_NoLED.process(PedHist_NoLED, LightYield_LED)
                 
                 # Finally generate some estimates on noises:
                 # note that the peaks are generated from the calibration for

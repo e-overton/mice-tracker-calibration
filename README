@@ -91,5 +91,10 @@ pyROOT.
    
    eg: python ADCCalibratiorUI 20150912
    
+4) Finally run ADCCalibratorPostProcessor with argument as the folder
+   to run a final analysis on the data and generate the output files for
+   processing.
+   This will also export online monitoring plots...  
+   
    
   
