@@ -386,7 +386,11 @@ def main(config, ForceIntLEDLoad=True):
                 # Insert poisson fit here.
                 dopoissonfit = True
                 poissonfit = PoissonPeakFitter.combinedfit(PedHist_NoLED, PedHist_LED) if dopoissonfit else None
+                if poissonfit is not None:
+                    poissonfit["fit"].Result().Print(ROOT.cout,True)
                 #PoissonPeakFitter.drawfits(poissonfit["fit"], PedHist_NoLED, PedHist_LED)
+
+                
                 
                 # Data Available, do the fitting processes:
                 # Run std processing on the pedestal histagram.
@@ -455,9 +459,9 @@ def main(config, ForceIntLEDLoad=True):
     
         
     # Save output:
-    #FECalibrationUtils.SaveFEChannelList(Calibration.FEChannels, os.path.join(config["path"], config["FECalibrations"]))
+    FECalibrationUtils.SaveFEChannelList(Calibration.FEChannels, os.path.join(config["path"], config["FECalibrations"]))
     # Save Status:
-    #FECalibrationUtils.SaveCalibrationStatus(Calibration.status, config["path"])
+    FECalibrationUtils.SaveCalibrationStatus(Calibration.status, config["path"])
         
     # Final Task, return Calibration:
     return Calibration
