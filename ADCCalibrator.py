@@ -401,7 +401,6 @@ def main(config, ForceIntLEDLoad=True):
                                              "Issue":"PoissonFit","Comment":"Failed to Fit LED Data, status: %i"%
                                              poissonfit["fit"].Result().Status()})
                         poissonfit = None
-
                 
                 # Data Available, do the fitting processes:
                 # Run std processing on the pedestal histagram.

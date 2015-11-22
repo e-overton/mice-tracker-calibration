@@ -217,9 +217,7 @@ def drawfits(fitter, h_dark, h_light):
     f_light.SetParameter(5,fitter.Result().Parameter(7))
     f_light.Draw("Same")
     
-    
-    
-    raw_input("test")
+    #raw_input("test")
     
         
 
