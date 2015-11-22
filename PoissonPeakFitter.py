@@ -127,7 +127,7 @@ class CombinedFitChiSquare( ROOT.TPyMultiGenFunction ):
 
 
         
-def combinedfit(h_dark, h_light):
+def combinedfit(h_dark, h_light, ipar=None):
     """
     Setup and perform the fit function
 
@@ -146,12 +146,13 @@ def combinedfit(h_dark, h_light):
     fitter = ROOT.Fit.Fitter()
     combfit = CombinedFitChiSquare(h_dark, h_light)
     
-    # Setup initial fit parameters:
-    ipar = [h_dark.GetEntries(),
-            h_light.GetEntries(),
-            0.025, 1.3,
-            8.0, 1.8, 0.4,
-            h_dark.GetMean()]
+    # Setup initial fit parameters (if not specified):
+    if ipar is None:
+        ipar = [h_dark.GetEntries(),
+                h_light.GetEntries(),
+                0.025, 1.3,
+                8.0, 1.8, 0.4,
+                h_dark.GetMean()]
     ipar = array.array('d',ipar)
     
     fitter.Config().SetParamsSettings(len(ipar),ipar)
