@@ -146,8 +146,6 @@ def combinedfit(h_dark, h_light, ipar=None):
     fitter = ROOT.Fit.Fitter()
     combfit = CombinedFitChiSquare(h_dark, h_light)
     
-    ipar[7] = h_dark.GetMean()
-    
     # Setup initial fit parameters (if not specified):
     if ipar is None:
         ipar = [h_dark.GetEntries(),
@@ -155,8 +153,13 @@ def combinedfit(h_dark, h_light, ipar=None):
                 0.025, 1.3,
                 8.0, 1.8, 0.4,
                 h_dark.GetMean()]
+    else:
+        ipar[7] = h_dark.GetMean()
+
+    #Convert to doubles array for ROOT:
     ipar = array.array('d',ipar)
     
+    # Apply settings/limits.
     fitter.Config().SetParamsSettings(len(ipar),ipar)
     fitter.Config().ParSettings(0).SetLimits(0,ipar[0]*10)
     fitter.Config().ParSettings(1).SetLimits(0,ipar[1]*10)
