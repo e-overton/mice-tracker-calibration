@@ -146,6 +146,8 @@ def combinedfit(h_dark, h_light, ipar=None):
     fitter = ROOT.Fit.Fitter()
     combfit = CombinedFitChiSquare(h_dark, h_light)
     
+    ipar[7] = h_dark.GetMean()
+    
     # Setup initial fit parameters (if not specified):
     if ipar is None:
         ipar = [h_dark.GetEntries(),
@@ -160,10 +162,10 @@ def combinedfit(h_dark, h_light, ipar=None):
     fitter.Config().ParSettings(1).SetLimits(0,ipar[1]*10)
     fitter.Config().ParSettings(2).SetLimits(0,5)
     fitter.Config().ParSettings(3).SetLimits(0,5)
-    fitter.Config().ParSettings(4).SetLimits(0,20)
+    fitter.Config().ParSettings(4).SetLimits(3,20)
     fitter.Config().ParSettings(5).SetLimits(0.2,5.5)
     fitter.Config().ParSettings(6).SetLimits(0,1.0)
-    fitter.Config().ParSettings(7).SetLimits(5,40)
+    fitter.Config().ParSettings(7).SetLimits(ipar[7]-3,ipar[7]+3)
     
     fitter.Config().SetMinimizer("Minuit2","Migrad");
     
