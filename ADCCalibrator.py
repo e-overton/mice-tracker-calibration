@@ -350,6 +350,7 @@ def main(config, ForceIntLEDLoad=True):
         
         try:    
             # Use the files to generate an LYE calibration:
+            poisson_ipar = None
             for FEChannel in Calibration.FEChannels:
                 
                 # Channel to process:
@@ -375,25 +376,35 @@ def main(config, ForceIntLEDLoad=True):
                     
                 # Check for data, if no data then flag it in the "Issues" array.
                 if (PedHist_NoLED.GetEntries() < 1):
-                        FEChannel.Issues.append("Missing internal NoLED data")
+                        FEChannel.Issues.append({"ChannelUID":ChannelUID, "Severity":4,\
+                                             "Issue":"InternalLED","Comment":"Missing internal NoLED data"})
                         continue
                 
                 LightYield_LED = LightYieldEstimator()
                 LightYield_NoLED = LightYieldEstimator()
                 
-                
-                # ############
-                # Insert poisson fit here.
+                # Attempt Poisson fitting of data:
                 dopoissonfit = True
-                poissonfit = PoissonPeakFitter.combinedfit(PedHist_NoLED, PedHist_LED) if dopoissonfit else None
-                if poissonfit is not None:
+                poissonfit = None
+                if dopoissonfit:
+                    #Do the fit:
+                    poissonfit = PoissonPeakFitter.combinedfit(PedHist_NoLED, PedHist_LED, poisson_ipar)
+                    #PoissonPeakFitter.drawfits(poissonfit["fit"], PedHist_NoLED, PedHist_LED)
                     poissonfit["fit"].Result().Print(ROOT.cout,True)
-                #PoissonPeakFitter.drawfits(poissonfit["fit"], PedHist_NoLED, PedHist_LED)
-
-                
+                    
+                    # Check the status of the result
+                    if poissonfit["fit"].Result().Status() == 0:
+                        # Update starting parameters, for next channel:
+                        poisson_ipar = [poissonfit["fit"].Result().Parameter(i) for i in range(8)]
+                    else:
+                        FEChannel.Issues.append({"ChannelUID":ChannelUID, "Severity":6,\
+                                             "Issue":"PoissonFit","Comment":"Failed to Fit LED Data, status: %i"%
+                                             poissonfit["fit"].Result().Status()})
+                        poissonfit = None
                 
                 # Data Available, do the fitting processes:
                 # Run std processing on the pedestal histagram.
+                # Use the poisson result(if available), and skip peak finding.
                 LightYield_LED.process(PedHist_LED, poissonfit=poissonfit)
                 
                 # Fit each peak, and try to improve location:
