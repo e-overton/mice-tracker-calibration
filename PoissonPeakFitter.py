@@ -182,11 +182,34 @@ def combinedfit(h_dark, h_light, ipar=None):
     t1 = time.time()
 
     print "time elapsed: ",  t1-t0
-    
-    fitpar = {"pedestal": fitter.Result().Parameter(7),
-              "gain": fitter.Result().Parameter(4),
-              "dark_pe": fitter.Result().Parameter(2),
-              "light_pe": fitter.Result().Parameter(3)}
+
+    fitpar = {
+        
+        # Fit parameters:
+        "pedestal": fitter.Result().Parameter(7),
+        "gain": fitter.Result().Parameter(4),
+        "rms":fitter.Result().Parameter(5),
+        "rms_inc":fitter.Result().Parameter(6),
+        "dark_pe": fitter.Result().Parameter(2),
+        "light_pe": fitter.Result().Parameter(3),
+        "dark_int": fitter.Result().Parameter(0),
+        "light_int": fitter.Result().Parameter(1),
+        
+        # Parameter Error:
+        "pedestal_e": fitter.Result().ParError(7),
+        "gain_e" :  fitter.Result().ParError(4),
+        "rms_e" : fitter.Result().ParError(5),
+        "rms_inc_e" : fitter.Result().ParError(6),
+        "dark_pe_e" : fitter.Result().ParError(2),
+        "light_pe_e": fitter.Result().ParError(3),
+        "dark_int_e": fitter.Result().ParError(0),
+        "light_int_e": fitter.Result().ParError(1),
+
+        # Fit data
+        "chisq" : fitter.Result().Chi2(),
+        "ndf"   : fitter.Result().Ndf(),
+        "prob"  : fitter.Result().Prob()
+        }
     
     return {"fit": fitter, "fitpar": fitpar}
 

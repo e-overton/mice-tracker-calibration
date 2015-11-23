@@ -396,6 +396,7 @@ def main(config, ForceIntLEDLoad=True):
                     if poissonfit["fit"].Result().Status() == 0:
                         # Update starting parameters, for next channel:
                         poisson_ipar = [poissonfit["fit"].Result().Parameter(i) for i in range(8)]
+                        FEChannel.InternalPoissonFitResult =  poissonfit["fitpar"]
                     else:
                         FEChannel.Issues.append({"ChannelUID":ChannelUID, "Severity":6,\
                                              "Issue":"PoissonFit","Comment":"Failed to Fit LED Data, status: %i"%
