@@ -151,7 +151,7 @@ def combinedfit(h_dark, h_light, ipar=None):
         ipar = [h_dark.GetEntries(),
                 h_light.GetEntries(),
                 0.025, 1.3,
-                3.0, 1.8, 0.4,
+                4.0, 1.8, 0.4,
                 h_dark.GetMean()]
     else:
         ipar[7] = h_dark.GetMean()
