@@ -151,7 +151,7 @@ def combinedfit(h_dark, h_light, ipar=None):
         ipar = [h_dark.GetEntries(),
                 h_light.GetEntries(),
                 0.025, 1.3,
-                8.0, 1.8, 0.4,
+                4.0, 1.8, 0.4,
                 h_dark.GetMean()]
     else:
         ipar[7] = h_dark.GetMean()
@@ -165,7 +165,7 @@ def combinedfit(h_dark, h_light, ipar=None):
     fitter.Config().ParSettings(1).SetLimits(0,ipar[1]*10)
     fitter.Config().ParSettings(2).SetLimits(0,5)
     fitter.Config().ParSettings(3).SetLimits(0,5)
-    fitter.Config().ParSettings(4).SetLimits(3,20)
+    fitter.Config().ParSettings(4).SetLimits(3,35)
     fitter.Config().ParSettings(5).SetLimits(0.2,5.5)
     fitter.Config().ParSettings(6).SetLimits(0,1.0)
     fitter.Config().ParSettings(7).SetLimits(ipar[7]-3,ipar[7]+3)

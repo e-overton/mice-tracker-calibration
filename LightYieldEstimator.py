@@ -390,7 +390,7 @@ class LightYieldEstimator:
         threshBin = hist.FindBin(240)
         upperBin = hist.GetNbinsX()
         lowBin = 5
-        ratio = (hist.Integral(threshBin,upperBin) + hist.Integral(0,lowBin) / hist.GetEntries())
+        ratio = (hist.Integral(threshBin,upperBin) + hist.Integral(0,lowBin)) / hist.GetEntries()
         return ( ratio >  0.01 ) # More than 1% in lowest 2 bins or upper 15 bins..
     
     def getPedastroolSingesFcn(self):
