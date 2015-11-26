@@ -165,7 +165,7 @@ def combinedfit(h_dark, h_light, ipar=None):
     fitter.Config().ParSettings(1).SetLimits(0,ipar[1]*10)
     fitter.Config().ParSettings(2).SetLimits(0,5)
     fitter.Config().ParSettings(3).SetLimits(0,5)
-    fitter.Config().ParSettings(4).SetLimits(3,35)
+    fitter.Config().ParSettings(4).SetLimits(2.5,35)
     fitter.Config().ParSettings(5).SetLimits(0.2,5.5)
     fitter.Config().ParSettings(6).SetLimits(0,1.0)
     fitter.Config().ParSettings(7).SetLimits(ipar[7]-3,ipar[7]+3)
@@ -243,7 +243,7 @@ def drawfits(fitter, h_dark, h_light):
     f_light.SetParameter(5,fitter.Result().Parameter(7))
     f_light.Draw("Same")
     
-    #raw_input("test")
+    raw_input("test")
     
         
 
@@ -253,12 +253,13 @@ if __name__ == "__main__":
     import sys
     
     # Test the new class stuff...
-    base_dir = "/home/ed/MICE/tracker/data/pedcalib/20150917_0918"
+    #base_dir = "/home/ed/MICE/tracker/data/pedcalib/20150917_0918"
+    base_dir = "/home/daq/tracker/data/pedcalib/20150917_0918"
     
     adcs_dark = TrDAQReader.TrDAQRead(os.path.join(base_dir, "pedcalib_0.upstream.root"))["RawADCs"]
     adcs_light = TrDAQReader.TrDAQRead(os.path.join(base_dir, "pedcalib_1.upstream.root"))["RawADCs"]
     
-    channel = 129
+    channel = 2129
     adc_dark = adcs_dark.ProjectionY("h_dprj",channel+1,channel+1,"")
     adc_light = adcs_light.ProjectionY("h_lprj",channel+1,channel+1,"")
     
