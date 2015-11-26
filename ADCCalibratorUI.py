@@ -197,6 +197,16 @@ class ADCUIMainFrame( ROOT.TGMainFrame ):
         self.bnextbad = ROOT.TGTextButton(self.fSideBar,"Find next bad")
         self.bnextbad.Connect("Clicked()", "TPyDispatcher", self._nextbad, "Dispatch()" )
         self.fSideBar.AddFrame( self.bnextbad, ROOT.TGLayoutHints(ROOT.kLHintsRight))
+        
+        self._flagbad = ROOT.TPyDispatcher(self.FlagAsBad)
+        self.bflagbad = ROOT.TGTextButton(self.fSideBar,"Flag Bad Channel")
+        self.bflagbad.Connect("Clicked()", "TPyDispatcher", self._flagbad, "Dispatch()" )
+        self.fSideBar.AddFrame( self.bflagbad, ROOT.TGLayoutHints(ROOT.kLHintsRight))
+
+        self._flagok = ROOT.TPyDispatcher(self.FlagAsOK)
+        self.bflagok = ROOT.TGTextButton(self.fSideBar,"Flag OK Channel")
+        self.bflagok.Connect("Clicked()", "TPyDispatcher", self._flagok, "Dispatch()" )
+        self.fSideBar.AddFrame( self.bflagok, ROOT.TGLayoutHints(ROOT.kLHintsRight))
 
         self._editChannel = ROOT.TPyDispatcher(self.EditChannel)
         self.bEditChannel = ROOT.TGTextButton(self.fSideBar,"Edit Channel")
@@ -596,19 +606,44 @@ class ADCUIMainFrame( ROOT.TGMainFrame ):
         ChannelID = int(self.sUniqueChannel.GetNumberEntry().GetIntNumber())
         for ChannelUID in range(ChannelID+1, FECalibrationUtils.NUM_CHANS):
             stop = False
+            accepted = False
             if self.Calibration.FEChannels[ChannelUID].InTracker:
                 for Issue in self.Calibration.FEChannels[ChannelUID].Issues:
+                    if (Issue["Issue"] == "AcceptedBad"):
+                        accepted = True
                     if (Issue["Severity"] > 2):
                         stop = True
-            if stop:
+            if not accepted and stop:
                 break
             
         self.sUniqueChannel.GetNumberEntry().SetIntNumber(ChannelUID)
         self.UpdateUniqueCounter()
         self.PlotChannelHist(0)
         
+    def FlagAsBad(self):
         
-    
+        ChannelID = int(self.sUniqueChannel.GetNumberEntry().GetIntNumber())
+        channel = self.Calibration.FEChannels[ChannelID]
+        
+        channel.ADC_Pedestal = 0.
+        channel.ADC_Gain = 0.
+        
+        channel.Issues.append({"ChannelUID":channel.ChannelUID, "Severity":10,\
+                                 "Issue":"AcceptedBad","Comment":"Channel Flagged as Bad. Masked out in ped/gain"})
+        
+        self.PlotChannelHist(0)
+        
+        
+    def FlagAsOK(self):
+        
+        ChannelID = int(self.sUniqueChannel.GetNumberEntry().GetIntNumber())
+        channel = self.Calibration.FEChannels[ChannelID]
+        
+        channel.Issues.append({"ChannelUID":channel.ChannelUID, "Severity":0,\
+                                 "Issue":"AcceptedBad","Comment":"Channel Flagged as OK."})
+        
+        self.PlotChannelHist(0)
+        
     def SaveAll(self):
         
         FECalibrationUtils.SaveFEChannelList(self.Calibration.FEChannels,\

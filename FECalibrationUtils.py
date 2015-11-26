@@ -326,7 +326,7 @@ def ExportADCCalibrationMAUS(FEChannels, output_filename):
         # Check the adc gain is within limits...
         if (output["adc_gain"] < low_gain) or (output["adc_gain"] > high_gain):
             if output["adc_gain"] > 1E-3:
-                print ("Bad Gain found - Channel %i"%FEChannel.ChannelUID)
+                print ("Bad Gain found - Channel %i, Gain: %.2f"%(FEChannel.ChannelUID, output["adc_gain"]))
             output["adc_pedestal"] = 0.0
             output["adc_gain"] = 0.0
            
