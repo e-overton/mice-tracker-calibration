@@ -63,100 +63,75 @@ def UpdateCalibration(old, new):
         FEChannelOld = old.FEChannels[ChannelUID]
         
         # If the channel is registered with issues, skip the
-        # update processing:
-        skip = False
+        # update processing, unless it has been reflagged OK.:
+        severity = 0
+        flagged_ok = False
         for Issue in FEChannelOld.Issues:
-            if (Issue["Severity"] > 5):
-                print ("!!! skipping over channel with issues: ")
-                print FEChannelOld.Issues
-                skip = True
+            if (Issue["Issue"] == "AcceptedBad"):
+                if Issue["Severity"] == 0:
+                    flagged_ok = True
+            else:
+                severity = Issue["Severity"] if Issue["Severity"] > severity else severity
         
-        if skip:
+        if not flagged_ok and severity > 4:
+            print "skipping channel with issues %i"%ChannelUID
+            continue
+        
+        if FEChannelOld.ADC_Pedestal < 1.0:
+            print "skipping channel with zero pedestal %i"%ChannelUID
             continue
             
-        if FEChannelOld.InTracker == 0:
-            print ("!!! skipping over channel not in tracker ")
-            continue
-            
-        # Check the P-value from the comparrison of the histograms to 
-        # see if the channel really needs updating:
-        # Not tested - may uncomment later.
-        #Prob = PedHistOldLED.Chi2Test("UU")
-        #if Prob > 0.05:
+        #if FEChannelOld.InTracker == 0:
+        #    print ("!!! skipping over channel not in tracker ")
         #    continue
-        
-        # Try fitting the existing histogram with a double gauss, starting
-        # parameters guessed from the old calibration.
-        upthresh = FEChannelOld.ADC_Pedestal + 1.5 *  FEChannelOld.ADC_Gain
-        oldfitfcn = ROOT.TF1("OldFit","gaus+gaus(3)",0,upthresh)
-        oldfitfcn.SetParameter(0,PedHistOldLED.GetBinContent(int(FEChannelOld.ADC_Pedestal)))
-        oldfitfcn.SetParameter(1,FEChannelOld.ADC_Pedestal)
-        oldfitfcn.SetParameter(2,2)
-        oldfitfcn.SetParameter(3,PedHistOldLED.GetBinContent(int(FEChannelOld.ADC_Pedestal+FEChannelOld.ADC_Gain)))
-        oldfitfcn.SetParameter(4,FEChannelOld.ADC_Pedestal+FEChannelOld.ADC_Gain)
-        oldfitfcn.SetParameter(5,2)
-        
-        c1.cd(1)
-        PedHistOldLED.Fit(oldfitfcn, "R")
-        oldfit_chindf = oldfitfcn.GetChisquare()/oldfitfcn.GetNDF()
-        
-        # Load each channel from the new internalLED data:
-        PedHistNewLED = new.IntLEDHist.ProjectionY("th1d_led_new",ChannelUID+1,ChannelUID+1,"")
-        for i in range (10):
-            PedHistNewLED.SetBinContent(i, 0.0)
             
+            
+        # Find pedestal on new fit function:
+        PedHistNewNoLED = new.IntNoLEDHist.ProjectionY("th1d_noled_new",ChannelUID+1,ChannelUID+1,"")
+        maxbin = PedHistNewNoLED.GetMaximumBin()
+        maxbin_centre = PedHistNewNoLED.GetXaxis().GetBinCenter(maxbin)
+        maxbin_entries = PedHistNewNoLED.GetBinContent(maxbin)
+        
+        
+        fitfcn = ROOT.TF1("OldFit","gaus",maxbin_centre-8.0,maxbin_centre+3.0)
+        fitfcn.SetParameter(0,maxbin_entries)
+        fitfcn.SetParameter(1,maxbin_centre)
+        fitfcn.SetParameter(2,1.8)
+        PedHistNewNoLED.Fit(fitfcn, "R")
+        fit_chindf = fitfcn.GetChisquare()/fitfcn.GetNDF() 
+             
         FEChannelNew = new.FEChannels[ChannelUID]
-        
-        # Construct a fit function to fit, using the last set of
-        # fit perameters which were recorded. Then Fit.
-        newfitfcn = ROOT.TF1("NewFit","gaus+gaus(3)",0,upthresh)
-        for i in range (6):
-            newfitfcn.SetParameter(i,oldfitfcn.GetParameter(i))
-        
-        c1.cd(2)
-        PedHistNewLED.Fit(newfitfcn, "R")
-        newfit_chindf = newfitfcn.GetChisquare()/newfitfcn.GetNDF()
         
         issuefound = False
         
         # Check chisquares, then other parameters and store to the channels internal
         # state.
-        if (oldfit_chindf > 8) or (newfit_chindf > 8):
+        if (fit_chindf > 8):
             issuefound = True
             FEChannelNew.Issues.append({"ChannelUID":ChannelUID,
                                         "Severity":8,
                                         "Issue":"Calibration Update",
-                                        "Comment":"Fit completed with unsatisfactory chisquare: %.2f, %2.f"%(oldfit_chindf,newfit_chindf)})
+                                        "Comment":"Fit completed with unsatisfactory chisquare: %.2f"%fit_chindf})
         else:
              
             # Save the parameters:
-            FEChannelNew.ADC_Pedestal = newfitfcn.GetParameter(1)
-            FEChannelNew.ADC_Gain = newfitfcn.GetParameter(4) - newfitfcn.GetParameter(1)
-            
-            ped_odiff = FEChannelOld.ADC_Pedestal - oldfitfcn.GetParameter(1)
-            gain_odiff = FEChannelOld.ADC_Gain + oldfitfcn.GetParameter(1) - oldfitfcn.GetParameter(4)
-            
-            ped_ndiff = FEChannelOld.ADC_Pedestal - FEChannelNew.ADC_Pedestal
-            gain_ndiff = FEChannelOld.ADC_Gain - FEChannelNew.ADC_Gain
+            FEChannelNew.ADC_Pedestal = fitfcn.GetParameter(1)
+            FEChannelNew.ADC_Gain = FEChannelOld.ADC_Gain
         
-        
-            if (abs(ped_odiff) > 0.5) or (abs(gain_odiff) > 0.5):
+            if (abs(FEChannelOld.ADC_Pedestal - FEChannelNew.ADC_Pedestal) > 0.5):
                 issuefound = True
                 FEChannelNew.Issues.append({"ChannelUID":ChannelUID,
                                             "Severity":6,
                                             "Issue":"Calibration Update",
-                                            "Comment":"Orignal Pedestal differences above threshold: %.2f, %2.f"%(ped_odiff,gain_odiff)})
+                                            "Comment":"Orignal Pedestal differences above threshold: %2.f"%\
+                                            (FEChannelOld.ADC_Pedestal - FEChannelNew.ADC_Pedestal)})
+
+
+        if issuefound:
+            # Clear Flag...
+            FEChannelNew.Issues = [i for i in FEChannelNew.Issues if i["Issue"] != "AcceptedBad"]
             
-            if (abs(ped_ndiff) > 0.5) or (abs(gain_ndiff) > 0.5):
-                issuefound = True
-                FEChannelNew.Issues.append({"ChannelUID":ChannelUID,
-                                            "Severity":6,
-                                            "Issue":"Calibration Update",
-                                            "Comment":"New Pedestal differences above threshold: %.2f, %2.f"%(ped_ndiff,gain_ndiff)})
-        
-        #if (issuefound):
-        #    c1.Update()
-        #    raw_input("we found an issue!")
+
     new.status["InternalLED"] = True  
         
 if __name__ == "__main__":
