@@ -84,6 +84,7 @@ def main(config):
             
                 # Check the light yield:
                 FEChannel.Light_Yield = (PedHist_LED.GetMean()-FEChannel.ADC_Pedestal)/FEChannel.ADC_Gain
+                FEChannel.Dark_Yield = (PedHist_NoLED.GetMean()-FEChannel.ADC_Pedestal)/FEChannel.ADC_Gain
                 
                 # Check the noise:
                 threshold_1pe = FEChannel.ADC_Pedestal + FEChannel.ADC_Gain
@@ -103,7 +104,7 @@ def main(config):
     # Save Calibration:
     FECalibrationUtils.ExportADCCalibrationMAUS(Calibration.FEChannels, os.path.join(config["path"], config["MAUSCalibration"]))
     #Make on-mon plots:
-    ExportOnMon.ExportConfig(config, "OnMonRef.root")
+    ExportOnMon.ExportConfig(config, os.path.join(config["path"],config["OnMon_Filename"]))
                 
     return Calibration
 

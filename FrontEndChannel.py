@@ -72,6 +72,7 @@ class FrontEndChannel:
         self.ADC_Pedestal = 0
         self.ADC_Gain = 0
         self.Light_Yield = 0
+        self.Dark_Yield = 0
         self.noise_1pe_rate = 0
         self.noise_2pe_rate = 0
         

@@ -5,15 +5,24 @@ ADC Calibrator Update functionality.
 
 Uses an exisiting calibration as a base point to make a new calibration.
 
+The arguments should be as follows:
+
+OldCalibration - Old calibration folder
+NewCalibrationFolder - The path to generate the new calibration in
+NewCalibrationData - The new folder to generate with this calibration in. (optional)
+
 E. Overton, July 2015.
 """
 
 import ADCCalibrator
+import ADCCalibrationPostProcessor
 import FECalibrationUtils
 import copy
 import ROOT
 import sys
 import os
+import shutil
+import json
 
 def UpdateCalibration(old, new):
     """
@@ -45,10 +54,6 @@ def UpdateCalibration(old, new):
     for key in ["BiasStored", "ExternalLED", "Mapped", "BadFE"]:
         if key in old.status:
             new.status[key] = old.status[key]
-            
-    # Make a canvas to draw on:
-    c1 = ROOT.TCanvas("c_comp","compare", 800, 600)
-    c1.Divide(2,1)
     
     # Perform updates by comparing the datasets:
     for ChannelUID in range(FECalibrationUtils.NUM_CHANS):
@@ -70,8 +75,8 @@ def UpdateCalibration(old, new):
             if (Issue["Issue"] == "AcceptedBad"):
                 if Issue["Severity"] == 0:
                     flagged_ok = True
-            else:
-                severity = Issue["Severity"] if Issue["Severity"] > severity else severity
+            
+            severity = Issue["Severity"] if Issue["Severity"] > severity else severity
         
         if not flagged_ok and severity > 4:
             print "skipping channel with issues %i"%ChannelUID
@@ -84,8 +89,7 @@ def UpdateCalibration(old, new):
         #if FEChannelOld.InTracker == 0:
         #    print ("!!! skipping over channel not in tracker ")
         #    continue
-            
-            
+
         # Find pedestal on new fit function:
         PedHistNewNoLED = new.IntNoLEDHist.ProjectionY("th1d_noled_new",ChannelUID+1,ChannelUID+1,"")
         maxbin = PedHistNewNoLED.GetMaximumBin()
@@ -97,7 +101,7 @@ def UpdateCalibration(old, new):
         fitfcn.SetParameter(0,maxbin_entries)
         fitfcn.SetParameter(1,maxbin_centre)
         fitfcn.SetParameter(2,1.8)
-        PedHistNewNoLED.Fit(fitfcn, "R")
+        PedHistNewNoLED.Fit(fitfcn, "RNQ")
         fit_chindf = fitfcn.GetChisquare()/fitfcn.GetNDF() 
              
         FEChannelNew = new.FEChannels[ChannelUID]
@@ -118,12 +122,12 @@ def UpdateCalibration(old, new):
             FEChannelNew.ADC_Pedestal = fitfcn.GetParameter(1)
             FEChannelNew.ADC_Gain = FEChannelOld.ADC_Gain
         
-            if (abs(FEChannelOld.ADC_Pedestal - FEChannelNew.ADC_Pedestal) > 0.5):
+            if (abs(FEChannelOld.ADC_Pedestal - FEChannelNew.ADC_Pedestal) > 2.0):
                 issuefound = True
                 FEChannelNew.Issues.append({"ChannelUID":ChannelUID,
                                             "Severity":6,
                                             "Issue":"Calibration Update",
-                                            "Comment":"Orignal Pedestal differences above threshold: %2.f"%\
+                                            "Comment":"Orignal Pedestal differences above threshold: %.2f"%\
                                             (FEChannelOld.ADC_Pedestal - FEChannelNew.ADC_Pedestal)})
 
 
@@ -132,7 +136,33 @@ def UpdateCalibration(old, new):
             FEChannelNew.Issues = [i for i in FEChannelNew.Issues if i["Issue"] != "AcceptedBad"]
             
 
-    new.status["InternalLED"] = True  
+    new.status["InternalLED"] = True
+  
+    
+def GenerateFolder(newpath, newdata, templatepath):
+    """
+    Use the existing calibration template to generate a new
+    folder for the calibration.
+    """
+    
+    # Copy the template files into the new files:
+    shutil.copytree(templatepath, newpath)
+    
+    if newpath.rindex('/') == len(newpath) - 1:
+        newpath = newpath[:-1]
+    calibname = newpath[newpath.rindex('/')+1:]
+    
+    # Update the calibration configuration in the "newdata" folder
+    config = json.load(open(os.path.join(newpath,"config.json")))
+    config["InternalLED"][0]["pedcalib"] = newdata
+    config["MAUSCalibration"] = "scifi_calibration_%s.txt"%calibname
+    config["OnMon_Filename"] = "scifi_onmon_%s.root"%calibname
+    json.dump(config,open(os.path.join(newpath,"config.json"), "w"))
+    
+    # Delete the internal status:
+    status = {}
+    json.dump(status,open(os.path.join(newpath,"status.json"), "w"))
+    
         
 if __name__ == "__main__":
     
@@ -140,31 +170,48 @@ if __name__ == "__main__":
     print (module_description)
     
     try:
-        print ("")
-        path = sys.argv[1]
-        newpath = sys.argv[2]
-        print ("loading calibration from directory: %s"%path)
-        print ("")
-        
-        print ("loading calibration config...")
-        config = FECalibrationUtils.LoadCalibrationConfig(path)
-        print ("... done")
-        print ("")
-        
-        print ("loading calibration config...")
-        newconfig = FECalibrationUtils.LoadCalibrationConfig(newpath)
-        print ("... done")
-        print ("")
-    
+        old_calibration_path = sys.argv[1]
+        new_calibration_path = sys.argv[2]
     except:
-        print "Failed to load valid configuration from calibration directory"
+        print "Failed to parse arguments"
+        raise
+        
+    try:
+        print "loading old config:", old_calibration_path, " ..."
+        oldconfig = FECalibrationUtils.LoadCalibrationConfig(old_calibration_path)
+        print " done "
+    except:
+        print "Failed to load old calibration directory"
+        raise
+    
+    
+    # Make a new directory if one does not already exist.
+    if not os.path.isdir(new_calibration_path):
+        try:
+            new_data_path = sys.argv[3]
+        except:
+            print "Please specify the data to use when generating a new calibration directory"
+            raise
+
+        try:
+            GenerateFolder(new_calibration_path, new_data_path, old_calibration_path)
+        except:
+            print "Error generating new calibration directory"
+            raise
+ 
+    try:
+        print "loading old config:", new_calibration_path, " ..."
+        newconfig = FECalibrationUtils.LoadCalibrationConfig(new_calibration_path)
+        print " done "
+    except:
+        print "Failed to load new calibration directory"
         raise
     
     
     # Construct a main "ADC Calibtation" Object, which we will return and manipulate
     # later using a GUI....
     Calibration = ADCCalibrator.ADCCalibration()
-    Calibration.Load(config)
+    Calibration.Load(oldconfig)
     Calibration.LoadInternalLED()
     
     CalibrationNew = ADCCalibrator.ADCCalibration()
@@ -173,11 +220,14 @@ if __name__ == "__main__":
     
     UpdateCalibration(Calibration, CalibrationNew)
     
+    # Flag status is checked:
+    CalibrationNew.status["Checked"] = True
+    
     # Store the new calibration:
     FECalibrationUtils.SaveFEChannelList(CalibrationNew.FEChannels, os.path.join(newconfig["path"], newconfig["FECalibrations"]))
     FECalibrationUtils.SaveCalibrationStatus(CalibrationNew.status, newconfig["path"])
     
+    # Post Process calibration/on-mon plots:
+    ADCCalibrationPostProcessor.main(newconfig)
+    
     print "Done"
-    
-    
-    
