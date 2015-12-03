@@ -394,11 +394,19 @@ def main(config, ForceIntLEDLoad=True):
                     
                     # Check the status of the result
                     if poissonfit["fit"].Result().Status() == 0:
-                        # Update starting parameters, for next channel:
-                        poisson_ipar = [poissonfit["fit"].Result().Parameter(i) for i in range(8)]
+                        
+                        # Sotore and check fit result, only update ipar if chisq looks good.
                         FEChannel.InternalPoissonFitResult =  poissonfit["fitpar"]
+                        
+			chi_ndf = FEChannel.InternalPoissonFitResult["chisq"]/FEChannel.InternalPoissonFitResult["ndf"]
+                        if chi_ndf> 5.0:
+                            FEChannel.Issues.append({"ChannelUID":ChannelUID, "Severity":6,\
+                                             "Issue":"PoissonFit","Comment":"high chisquare/ndf for fit: %i"%
+                                             chi_ndf})
+                        else:
+                            poisson_ipar = [poissonfit["fit"].Result().Parameter(i) for i in range(8)]
                     else:
-                        FEChannel.Issues.append({"ChannelUID":ChannelUID, "Severity":6,\
+                        FEChannel.Issues.append({"ChannelUID":ChannelUID, "Severity":7,\
                                              "Issue":"PoissonFit","Comment":"Failed to Fit LED Data, status: %i"%
                                              poissonfit["fit"].Result().Status()})
                         poissonfit = None

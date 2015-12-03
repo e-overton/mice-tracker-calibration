@@ -254,7 +254,10 @@ def ProcessChannels(campaign, channel_list=None):
             #print ("Running channel: %i, bias: %.2f, led: %s, ledrun: %r"%\
             #       (channel_LYE.ChannelID, channel_LYE.bias, led_state, not (led_channel_run is None) ) )
             led_lye = None if led_channel_run is None else LightYieldEstimator.LightYieldEstimator(led_channel_run)
-            channel_LYE.process(ped, led_lye)
+            try:
+                channel_LYE.process(ped, led_lye)
+            except:
+                print "Error processing channel data.. Dataset:", DatasetID, "Channel:", ChannelID
             campaign[DatasetID]["channels"][ChannelID] = channel_LYE.getMap()
             
 

@@ -38,20 +38,20 @@ def ProcessLED(Channels, PedHist):
     output_list = []
 
     for c in Channels:
-         channel_LYE = LightYieldEstimator.LightYieldEstimator(c)
-         ChannelID = c["ChannelID"]
-         ped = PedHist.ProjectionY("th1d_projecty",ChannelID+1,ChannelID+1,"")
-         if (ped.GetEntries() < 1):
-             print ("Skipping channel with no data...")
-         else:
-             channel_LYE.process(ped)
-             for p in range(len(channel_LYE.Peaks)):
-                 PeakFitResults = channel_LYE.fitPeak(ped, p)
-                 channel_LYE.Peaks[p] = PeakFitResults[1]
-                 #channel_LYE.PeakErrors[p] = PeakFitResults[4]
-             channel_LYE.gainEstimator()
+        channel_LYE = LightYieldEstimator.LightYieldEstimator(c)
+        ChannelID = c["ChannelID"]
+        ped = PedHist.ProjectionY("th1d_projecty",ChannelID+1,ChannelID+1,"")
+        if (ped.GetEntries() < 1):
+            print ("Skipping channel with no data...")
+        else:
+            channel_LYE.process(ped)
+            for p in range(len(channel_LYE.Peaks)):
+                PeakFitResults = channel_LYE.fitPeak(ped, p)
+                channel_LYE.Peaks[p] = PeakFitResults[1]
+                #channel_LYE.PeakErrors[p] = PeakFitResults[4]
+            channel_LYE.gainEstimator()
              
-         output_list.append(channel_LYE.getMap())
+        output_list.append(channel_LYE.getMap())
 
     return output_list
 

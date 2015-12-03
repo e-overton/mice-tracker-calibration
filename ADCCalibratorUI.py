@@ -459,12 +459,25 @@ class ADCUIMainFrame( ROOT.TGMainFrame ):
         """
         
         self.tgpoints = ROOT.TGraph()
+        self.tgpoints_out = ROOT.TGraph()
         
         for FEChannel in Calibration.FEChannels:
+            if FEChannel.InTracker:
+                self.tgpoints.SetPoint(self.tgpoints.GetN(), FEChannel.ChannelUID, FEChannel.ADC_Gain)
+            else:
+                self.tgpoints_out.SetPoint(self.tgpoints_out.GetN(), FEChannel.ChannelUID, FEChannel.ADC_Gain)
+                
             
-            self.tgpoints.SetPoint(self.tgpoints.GetN(), FEChannel.ChannelUID, FEChannel.ADC_Gain)
+        self.tgpoints.SetMarkerStyle(7)
+        self.tgpoints.SetMarkerColor(ROOT.kBlue)
+        self.tgpoints_out.SetMarkerStyle(7)
+        self.tgpoints_out.SetMarkerColor(ROOT.kRed)
+        
+        self.mg = ROOT.TMultiGraph()
+        self.mg.Add(self.tgpoints, "p")
+        self.mg.Add(self.tgpoints_out, "p")
             
-        self.tgpoints.Draw("ap")
+        self.mg.Draw("a")
         self.Canvas.GetCanvas().Update()
         
     def PlotADCPedestal(self):
@@ -473,12 +486,24 @@ class ADCUIMainFrame( ROOT.TGMainFrame ):
         """
         
         self.tgpoints = ROOT.TGraph()
+        self.tgpoints_out = ROOT.TGraph()
         
         for FEChannel in Calibration.FEChannels:
+            if FEChannel.InTracker:
+                self.tgpoints.SetPoint(self.tgpoints.GetN(), FEChannel.ChannelUID, FEChannel.ADC_Pedestal)
+            else:
+                self.tgpoints_out.SetPoint(self.tgpoints_out.GetN(), FEChannel.ChannelUID, FEChannel.ADC_Pedestal)
+        
+        self.tgpoints.SetMarkerStyle(7)
+        self.tgpoints.SetMarkerColor(ROOT.kBlue)
+        self.tgpoints_out.SetMarkerStyle(7)
+        self.tgpoints_out.SetMarkerColor(ROOT.kRed)
+        
+        self.mg = ROOT.TMultiGraph()
+        self.mg.Add(self.tgpoints, "p")
+        self.mg.Add(self.tgpoints_out, "p")
             
-            self.tgpoints.SetPoint(self.tgpoints.GetN(), FEChannel.ChannelUID, FEChannel.ADC_Pedestal)
-            
-        self.tgpoints.Draw("ap")
+        self.mg.Draw("a")
         self.Canvas.GetCanvas().Update()
         
         
