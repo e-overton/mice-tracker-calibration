@@ -352,13 +352,6 @@ def ExportADCCalibrationMAUS(FEChannels, output_filename):
     print ("Saved maus calibration to: %s"%output_filename)
     
     return
-
-if __name__ == "__main__":
-    
-    print (module_description)
-    
-    config = LoadCalibrationConfig(sys.argv[1])
-    status = LoadCalibrationStatus(sys.argv[1])
     
     
 ########################################################################
@@ -390,6 +383,11 @@ def LoadPedCalib(folder_path):
                 
     return histograms
             
-        
+if __name__ == "__main__":
+    
+    print (module_description)
+    
+    config = LoadCalibrationConfig(sys.argv[1])
+    status = LoadCalibrationStatus(sys.argv[1])
         
     
