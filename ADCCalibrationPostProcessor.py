@@ -168,7 +168,7 @@ if __name__ == "__main__":
     # Run the main calibraton now:
     Calibration = main (config)
     
-    Plotter(Calibration)
+    #Plotter(Calibration)
     
     raw_input("Script complete, press enter to continue")
     print ("Exiting.")

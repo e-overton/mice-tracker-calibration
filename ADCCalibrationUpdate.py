@@ -162,7 +162,29 @@ def GenerateFolder(newpath, newdata, templatepath):
     # Delete the internal status:
     status = {}
     json.dump(status,open(os.path.join(newpath,"status.json"), "w"))
+
+
+def GeneratePedDifferrences(old, new):
+    """
+    Function to plot the pedestal differences between an old calibration
+    and a new one.
     
+    :type old: ADCCalibration
+    :type new: ADCCalibration
+    """
+
+    hist = ROOT.TH1D("peddiff", "peddiff", 8192, -0.5, 8191.5)
+    
+    for ch_old, ch_new in zip( old.FEChannels, new.FEChannels):
+        
+        if ch_old.ChannelUID != ch_new.ChannelUID:
+            print "Old and New channels do not match UID! Something is badly wrong"
+        
+        bin = hist.FindBin(ch_old.ChannelUID)
+        hist.SetBinContent(bin, ch_old.ADC_Pedestal - ch_new.ADC_Pedestal)
+        
+    return hist
+        
         
 if __name__ == "__main__":
     
@@ -219,6 +241,12 @@ if __name__ == "__main__":
     CalibrationNew.LoadInternalLED()
     
     UpdateCalibration(Calibration, CalibrationNew)
+    
+    # save pe
+    peddiff = GeneratePedDifferrences(Calibration, CalibrationNew)
+    peddiff.Draw()
+    raw_input("temp pause...")
+    
     
     # Flag status is checked:
     CalibrationNew.status["Checked"] = True
