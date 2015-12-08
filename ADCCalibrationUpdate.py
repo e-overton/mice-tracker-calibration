@@ -69,6 +69,7 @@ def UpdateCalibration(old, new):
         
         # If the channel is registered with issues, skip the
         # update processing, unless it has been reflagged OK.:
+        """ Not using this since really bad channels have ADC Pedestal & Gain = 0
         severity = 0
         flagged_ok = False
         for Issue in FEChannelOld.Issues:
@@ -78,9 +79,10 @@ def UpdateCalibration(old, new):
             
             severity = Issue["Severity"] if Issue["Severity"] > severity else severity
         
-        if not flagged_ok and severity > 4:
+        if not flagged_ok and severity > 6:
             print "skipping channel with issues %i"%ChannelUID
             continue
+        """
         
         if FEChannelOld.ADC_Pedestal < 1.0:
             print "skipping channel with zero pedestal %i"%ChannelUID
@@ -105,33 +107,32 @@ def UpdateCalibration(old, new):
         fit_chindf = fitfcn.GetChisquare()/fitfcn.GetNDF() 
              
         FEChannelNew = new.FEChannels[ChannelUID]
-        
-        issuefound = False
-        
+
         # Check chisquares, then other parameters and store to the channels internal
         # state.
+        issuefound = 0
         if (fit_chindf > 8):
-            issuefound = True
+            issuefound += 1
             FEChannelNew.Issues.append({"ChannelUID":ChannelUID,
                                         "Severity":8,
                                         "Issue":"Calibration Update",
                                         "Comment":"Fit completed with unsatisfactory chisquare: %.2f"%fit_chindf})
-        else:
-             
+            if (fit_chindf > 250):
+                issuefound += 1 # Make more severe.
+            
+        if (abs(FEChannelOld.ADC_Pedestal - FEChannelNew.ADC_Pedestal) > 3.0):
+            issuefound += 1
+            FEChannelNew.Issues.append({"ChannelUID":ChannelUID,
+                                        "Severity":6,
+                                        "Issue":"Calibration Update",
+                                        "Comment":"Orignal Pedestal differences above threshold: %.2f"%\
+                                        (FEChannelOld.ADC_Pedestal - FEChannelNew.ADC_Pedestal)})
+
+        if issuefound < 2:
             # Save the parameters:
             FEChannelNew.ADC_Pedestal = fitfcn.GetParameter(1)
             FEChannelNew.ADC_Gain = FEChannelOld.ADC_Gain
-        
-            if (abs(FEChannelOld.ADC_Pedestal - FEChannelNew.ADC_Pedestal) > 2.0):
-                issuefound = True
-                FEChannelNew.Issues.append({"ChannelUID":ChannelUID,
-                                            "Severity":6,
-                                            "Issue":"Calibration Update",
-                                            "Comment":"Orignal Pedestal differences above threshold: %.2f"%\
-                                            (FEChannelOld.ADC_Pedestal - FEChannelNew.ADC_Pedestal)})
-
-
-        if issuefound:
+        else:
             # Clear Flag...
             FEChannelNew.Issues = [i for i in FEChannelNew.Issues if i["Issue"] != "AcceptedBad"]
             
