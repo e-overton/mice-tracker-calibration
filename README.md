@@ -1,4 +1,5 @@
-<h1>Tracker Calibration Tools</h1>
+Tracker Calibration Tools
+=========================
 
 This toolkit should prove the nesseseary tools and workflow to allow the
 detectors to be calibrated. Please follow the instructions to operate
@@ -12,9 +13,10 @@ pyROOT.
 
 
 
-<h2>Workflow:</h2>
+Workflow:
+---------
 
-<b>BIAS CALIBRATION:</b>
+**BIAS CALIBRATION:**
 
 1) Use the automatic bias data collection script located
    in the base folder/scripts/RunCalibration.py
@@ -39,7 +41,7 @@ pyROOT.
    > BadFE.txt - List of bad front end channels (do not make normal peaks).
    Note these files are made by hand.
 
-<b>ADC CALIBRATION FROM SCRATCH:</b>
+**ADC CALIBRATION FROM SCRATCH:**
 
 1) Make a new working folder like 2015-01a, using the
    config there as a template. Copy the Biases.txt and BadFE.txt
@@ -73,7 +75,7 @@ pyROOT.
    processing.
    This will also export online monitoring plots...
    
-<b>ADC CALIBRATION FROM UPDATE:</b>
+**ADC CALIBRATION FROM UPDATE:**
 
 1) Make a new working folder like 2015-01a, using the
    config there as a template. Copy the Biases.txt and BadFE.txt
