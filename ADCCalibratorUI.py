@@ -139,7 +139,7 @@ class ADCUIMainFrame( ROOT.TGMainFrame ):
                                                  ROOT.TGNumberFormat.kNESInteger,\
                                                  ROOT.TGNumberFormat.kNEANonNegative,\
                                                  ROOT.TGNumberFormat.kNELLimitMinMax,\
-                                                 0, 8127 )
+                                                 0, 8192 )
         self.sUniqueChannel.Connect("ValueSet(Long_t)", "TPyDispatcher", self._uniqueChanUpdate, "Dispatch()" )
         self.sUniqueChannel.GetNumberEntry().Connect("ReturnPressed()", "TPyDispatcher", self._uniqueChanUpdate, "Dispatch()" )
         self.fUniqueChannel.AddFrame( self.sUniqueChannel, ROOT.TGLayoutHints(ROOT.kLHintsRight))

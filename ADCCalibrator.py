@@ -398,7 +398,7 @@ def main(config, ForceIntLEDLoad=True):
                         # Sotore and check fit result, only update ipar if chisq looks good.
                         FEChannel.InternalPoissonFitResult =  poissonfit["fitpar"]
                         
-			chi_ndf = FEChannel.InternalPoissonFitResult["chisq"]/FEChannel.InternalPoissonFitResult["ndf"]
+                        chi_ndf = FEChannel.InternalPoissonFitResult["chisq"]/FEChannel.InternalPoissonFitResult["ndf"]
                         if chi_ndf> 5.0:
                             FEChannel.Issues.append({"ChannelUID":ChannelUID, "Severity":6,\
                                              "Issue":"PoissonFit","Comment":"high chisquare/ndf for fit: %i"%

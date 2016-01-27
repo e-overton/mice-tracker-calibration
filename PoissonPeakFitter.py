@@ -167,10 +167,10 @@ def combinedfit(h_dark, h_light, ipar=None):
     fitter.Config().ParSettings(3).SetLimits(0,5)
     fitter.Config().ParSettings(4).SetLimits(2.5,35)
     fitter.Config().ParSettings(5).SetLimits(0.2,5.5)
-    fitter.Config().ParSettings(6).SetLimits(0,1.0)
+    fitter.Config().ParSettings(6).SetLimits(0,2.5)
     fitter.Config().ParSettings(7).SetLimits(ipar[7]-3,ipar[7]+3)
     
-    fitter.Config().SetMinimizer("Minuit2","Migrad");
+    fitter.Config().SetMinimizer("Minuit2","Migrad")
     
     #fitter.FitFCN(c, 8, 0,
     #             self.data_dark.Size()+self.data_light.Size(),True)
