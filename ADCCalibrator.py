@@ -465,6 +465,8 @@ def main(config, ForceIntLEDLoad=True):
                 if (p_value > 0.03):
                     FEChannel.Issues.append({"ChannelUID":ChannelUID, "Severity":6,\
                                              "Issue":"InternalLED","Comment":"LED pedestal matches no LED pedestal."})
+            except KeyboardInterrupt:
+                raise
             except:
                 FEChannel.Issues.append({"ChannelUID":ChannelUID, "Severity":10,\
                                              "Issue":"Data","Comment":"Failed to process channel"})
