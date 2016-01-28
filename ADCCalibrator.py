@@ -346,17 +346,17 @@ def main(config, ForceIntLEDLoad=True):
             
     # Next task, process internal LED:
     if not ("InternalLED" in Calibration.status) or (Calibration.status["InternalLED"] == False):        
-        
-        
-        try:    
-            # Use the files to generate an LYE calibration:
-            poisson_ipar = None
-            for FEChannel in Calibration.FEChannels:
-                
-                # Channel to process:
-                ChannelUID = FEChannel.ChannelUID
-                print "Processing channel: ", ChannelUID
+          
+        # Use the files to generate an LYE calibration:
+        poisson_ipar = None
+        for FEChannel in Calibration.FEChannels:
             
+            # Channel to process:
+            ChannelUID = FEChannel.ChannelUID
+            print "Processing channel: ", ChannelUID
+            
+            # Wrap in a try loop to catch and skip errors...
+            try:
                 # Get single channel hisrogram, and nuke all channels below 15,
                 # to stop peaks being found there in the event there is hits there.
                 PedHist_LED = Calibration.IntLEDHist.ProjectionY("th1d_led",ChannelUID+1,ChannelUID+1,"")
@@ -465,13 +465,12 @@ def main(config, ForceIntLEDLoad=True):
                 if (p_value > 0.03):
                     FEChannel.Issues.append({"ChannelUID":ChannelUID, "Severity":6,\
                                              "Issue":"InternalLED","Comment":"LED pedestal matches no LED pedestal."})
-
-            # Done with external LED, update statuses:
-            Calibration.status["InternalLED"] = True
-            
-            
-        except:
-            raise
+            except:
+                FEChannel.Issues.append({"ChannelUID":ChannelUID, "Severity":10,\
+                                             "Issue":"Data","Comment":"Failed to process channel"})
+                
+        # Done with external LED, update statuses:
+        Calibration.status["InternalLED"] = True
         
         # Update Channel Staturses
         for FEChannel in Calibration.FEChannels:
@@ -480,12 +479,6 @@ def main(config, ForceIntLEDLoad=True):
                     FEChannel.Status = "GOOD"  
             except:
                 continue
-    
-        
-    # Save output:
-    FECalibrationUtils.SaveFEChannelList(Calibration.FEChannels, os.path.join(config["path"], config["FECalibrations"]))
-    # Save Status:
-    FECalibrationUtils.SaveCalibrationStatus(Calibration.status, config["path"])
         
     # Final Task, return Calibration:
     return Calibration
@@ -513,6 +506,11 @@ if __name__ == "__main__":
     
     # Run the main calibraton now:
     Calibration = main (config)
+    
+    # Save output:
+    FECalibrationUtils.SaveFEChannelList(Calibration.FEChannels, os.path.join(config["path"], config["FECalibrations"]))
+    # Save Status:
+    FECalibrationUtils.SaveCalibrationStatus(Calibration.status, config["path"])
     
     
     #raw_input("Script complete, press enter to continue")
