@@ -46,23 +46,6 @@ def main(config):
         
         # Load the internal LED Data:
         print ("Attempting to load internal led files ...")
-        
-        if len(config["InternalLED"]) == 0:
-            raise ("No Files to load!")
-        elif "pedcalib" in config["InternalLED"][0]:
-            Calibration.IntNoLEDHist, Calibration.IntLEDHist =\
-            FECalibrationUtils.LoadPedCalib(os.path.join(config["DataPath"],config["InternalLED"][0]["pedcalib"]))
-        else:
-            
-            leds_dict = config["InternalLED"]
-            for d in leds_dict:
-                d["filepath"] = os.path.join(config["DataPath"],d["filename"])
-            
-            # Load the LED files:
-            internal_files = [d for d in leds_dict if d["led"]]
-            Calibration.IntLEDHist = TrDAQReader.TrMultiDAQRead(internal_files , "InternalLED")
-            notinternal_files = [d for d in leds_dict if not d["led"]]
-            Calibration.IntNoLEDHist = TrDAQReader.TrMultiDAQRead(notinternal_files , "InternalNoLED")
             
         if ( Calibration.IntNoLEDHist is None ) or ( Calibration.IntLEDHist is None):
             print ("error loading internal led files")
