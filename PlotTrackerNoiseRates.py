@@ -11,6 +11,7 @@ import FECalibrationUtils
 import FrontEndChannel
 import ADCCalibrator
 import ROOT
+import os
 
 def PlotPlaneNoiseRates(FEChannels, npe_cut = 2.0):
     """
@@ -88,7 +89,9 @@ if __name__ == "__main__":
                 hname = "pe_%s_%i_%i_%.1f"%(tracker, station, plane, npe_cut)
                 plots[hname].Draw()
                 plots[hname].GetYaxis().SetRangeUser(0,0.01)
-        c[-1].SaveAs("20150926_%s_noise.pdf"%tracker)
+        #c[-1].SaveAs("20150926_%s_noise.pdf"%tracker)
+        c[-1].SaveAs(os.path.join(config["path"], "Noise_%s.png"%tracker))
+        c[-1].SaveAs(os.path.join(config["path"], "Noise_%s.pdf"%tracker))
                 
     for tracker in ["US", "DS"]:
         c.append(ROOT.TCanvas(tracker+"ly", tracker+"ly", 600, 900))
@@ -99,6 +102,8 @@ if __name__ == "__main__":
                 hname = "ly_%s_%i_%i"%(tracker, station, plane)
                 plots[hname].Draw()
                 plots[hname].GetYaxis().SetRangeUser(0,1.8)
-        c[-1].SaveAs("20150926_%s_ledyield.pdf"%tracker)
+        #c[-1].SaveAs("20150926_%s_ledyield.pdf"%tracker)
+        c[-1].SaveAs(os.path.join(config["path"], "LEDYield_%s.png"%tracker))
+        c[-1].SaveAs(os.path.join(config["path"], "LEDYield_%s.pdf"%tracker))
     
-    raw_input("Sleepig")
+    #raw_input("Sleepig")

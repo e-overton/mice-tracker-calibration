@@ -12,6 +12,7 @@ import FrontEndChannel
 import ADCCalibrator
 import ROOT
 import math
+import os
 
 def ADCCheckStability(OldCalibration, NewCalibration):
     """
@@ -60,7 +61,8 @@ def ADCCheckStability(OldCalibration, NewCalibration):
     status = status_ly and status_dy
     
     return status, {"status_dy": status_dy, "h_dy_res": h_dy_res,
-                    "status_ly": status_dy, "h_ly_res": h_ly_res}
+                    "status_ly": status_dy, "h_ly_res": h_ly_res,
+                    "h_peddiff": h_pdiff}
     
     return h_ly_res
     
@@ -94,13 +96,21 @@ if __name__ == "__main__":
     
     status, data = ADCCheckStability(CalibrationOld, CalibrationNew)
     
-    print status
+    # Update the status data - this script checked it:
+    CalibrationNew.status = FECalibrationUtils.LoadCalibrationStatus(new_config["path"])
+    CalibrationNew.status["Checked"] = True
+    CalibrationNew.status["Quality"] = status
+    CalibrationNew.status["CheckedBy"] = "ADCStabilityCheck"
+    FECalibrationUtils.SaveCalibrationStatus(CalibrationNew.status, new_config["path"])
     
+    # Generate a plot of the results
     c = ROOT.TCanvas("c", "c", 1000,350)
     c.Divide(3,1)
     c.cd(1)
     data["h_dy_res"].Draw()
     c.cd(2)
     data["h_ly_res"].Draw()
-    
-    raw_input ("waiting")
+    c.cd(3)
+    data["h_peddiff"].Draw()
+    c.SaveAs(os.path.join(new_config["path"], "StabilityCheck.pdf"))
+    c.SaveAs(os.path.join(new_config["path"], "StabilityCheck.png"))
