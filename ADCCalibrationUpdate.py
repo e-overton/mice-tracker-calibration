@@ -244,9 +244,9 @@ if __name__ == "__main__":
     UpdateCalibration(Calibration, CalibrationNew)
     
     # save pe
-    peddiff = GeneratePedDifferrences(Calibration, CalibrationNew)
-    peddiff.Draw()
-    raw_input("temp pause...")
+    #peddiff = GeneratePedDifferrences(Calibration, CalibrationNew)
+    #peddiff.Draw()
+    #raw_input("temp pause...")
     
     
     # Flag status is checked:
