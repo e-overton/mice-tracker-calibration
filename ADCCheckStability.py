@@ -114,3 +114,6 @@ if __name__ == "__main__":
     data["h_peddiff"].Draw()
     c.SaveAs(os.path.join(new_config["path"], "StabilityCheck.pdf"))
     c.SaveAs(os.path.join(new_config["path"], "StabilityCheck.png"))
+    
+    if not status:
+        sys.exit(1)
