@@ -3,12 +3,15 @@ module_description=\
 """
 Tool to generate a summary of a calibration and store the results
 in a summary html file.
+
+Areguments are : rootdir, path to calibration root directory.
 """
 
 import xml.dom.minidom as dom
 import FECalibrationUtils
 import ADCCalibrator
 import os
+import sys
 
 def AddTextNode(doc, node, name, text, colour=None, link=None):
     """
@@ -172,7 +175,7 @@ def CalibrationSummary (path):
     # save:
     with open(os.path.join(path, "status.xhtml"), "w") as f:
         doc.writexml(f)
-    print doc.toprettyxml()
+    #print doc.toprettyxml()
     
     return Calibration
 
@@ -243,15 +246,22 @@ def GenerateIndexSummart(rootpath):
     body.appendChild(mastertable)
     with open(os.path.join(rootpath, "summary.xhtml"), "w") as f:
         doc.writexml(f)
-    print doc.toprettyxml() 
+    #print doc.toprettyxml() 
             
 
-    
-    
 
     
 if __name__ == "__main__":
-    GenerateIndexSummart("/home/ed/MICE/tracker/calibration/ped/")
     
-    #CalibrationSummary("/home/ed/MICE/tracker/calibration/ped/20150930_0108")
+    try:
+        print ("")
+        rootpath = sys.argv[1]
+        print ("loading root directory: %s"%rootpath)
+        print ("")
+    
+    except:
+        print "Failed to load root directory argument."
+        raise
+    
+    GenerateIndexSummart(rootpath)
     
