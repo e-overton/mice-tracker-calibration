@@ -378,7 +378,7 @@ def ExportBadChannelsMAUS(FEChannels, output_filename):
             
             # Write the bad channels entry:
             if bad:
-                f.write('%i %i\n'%(FEChannel.Bank, FEChannel.BankChannel))
+                f.write('%i %i\n'%(FEChannel.BankUID, FEChannel.BankChannel))
                 
     # Done
     
