@@ -53,14 +53,24 @@ def main(config):
             print ("... done loading external files")
         
         
+        # List to hold the UIDs
+        bad_uids = []
+        
+        # Noise 2pe Threshold:
+        bad_noiselimit = 0.008 # 0.8% Probability.
+        
+        
         # Use the files to generate an LYE calibration:
         for FEChannel in Calibration.FEChannels:
             
             # Channel to process:
             ChannelUID = FEChannel.ChannelUID
             
+            # Clear any maus bad channel flags:
+            FEChannel.Issues = [i for i in FEChannel.Issues if i["Issue"] != "MAUSBadChannel"]
+            
             # Check the channel has good/calibrated peds:
-            if (FEChannel.ADC_Pedestal > 1): 
+            if (FEChannel.ADC_Pedestal > 1.): 
             
                 PedHist_LED = Calibration.IntLEDHist.ProjectionY("th1d_led",ChannelUID+1,ChannelUID+1,"")
                 PedHist_NoLED = Calibration.IntNoLEDHist.ProjectionY("th1d_noled",ChannelUID+1,ChannelUID+1,"")
@@ -78,6 +88,26 @@ def main(config):
                 FEChannel.noise_2pe_rate = PedHist_NoLED.Integral(\
                     PedHist_NoLED.FindBin(threshold_2pe), 255)/PedHist_NoLED.GetEntries()
                     
+                # Check constraints for channel
+                if (FEChannel.noise_2pe_rate > bad_noiselimit) and FEChannel.InTracker:
+                    bad_uids.append(ChannelUID)
+                    FEChannel.Issues.append({"ChannelUID":ChannelUID,
+                                        "Severity":5,
+                                        "Issue":"MAUSBadChannel",
+                                        "Comment":"Noise above %.2f"%(bad_noiselimit*100.)})
+                    print "Noisey"
+                
+            # Else
+            elif FEChannel.InTracker:
+                bad_uids.append(ChannelUID)
+                FEChannel.Issues.append({"ChannelUID":ChannelUID,
+                                        "Severity":5,
+                                        "Issue":"MAUSBadChannel",
+                                        "Comment":"No Pedestal, Dead"})
+                print "No signal!"
+                    
+
+                    
         Calibration.status["PostProcessed"] = True
     
     # Save output:
@@ -86,8 +116,14 @@ def main(config):
     FECalibrationUtils.SaveCalibrationStatus(Calibration.status, config["path"])
     # Save Calibration:
     FECalibrationUtils.ExportADCCalibrationMAUS(Calibration.FEChannels, os.path.join(config["path"], config["MAUSCalibration"]))
+    
+    # Handle Bad channels if a filename is specified.
+    if "MAUSBadChannels" in config:
+        FECalibrationUtils.ExportBadChannelsMAUS(Calibration.FEChannels, os.path.join(config["path"], config["MAUSBadChannels"]))
+    
     #Make on-mon plots:
-    ExportOnMon.ExportConfig(config, os.path.join(config["path"],config["OnMon_Filename"]))
+    if "OnMon_Filename" in config:
+        ExportOnMon.ExportConfig(config, os.path.join(config["path"],config["OnMon_Filename"]))
                 
     return Calibration
 
@@ -152,6 +188,7 @@ if __name__ == "__main__":
     Calibration = main (config)
     
     #Plotter(Calibration)
+    #raw_input("Script complete, press enter to continue")
+    print ("Script complete,Exiting.")
     
-    raw_input("Script complete, press enter to continue")
-    print ("Exiting.")
+    

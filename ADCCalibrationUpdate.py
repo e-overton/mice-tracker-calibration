@@ -158,6 +158,7 @@ def GenerateFolder(newpath, newdata, templatepath):
     config["InternalLED"][0]["pedcalib"] = newdata
     config["MAUSCalibration"] = "scifi_calibration_%s.txt"%calibname
     config["OnMon_Filename"] = "scifi_onmon_%s.root"%calibname
+    config["ReferencePath"] = templatepath
     json.dump(config,open(os.path.join(newpath,"config.json"), "w"))
     
     # Delete the internal status:

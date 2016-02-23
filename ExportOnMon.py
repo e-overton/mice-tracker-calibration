@@ -61,46 +61,8 @@ def ExportConfig(config, output_filename):
     # later using a GUI....
     Calibration = ADCCalibrator.ADCCalibration()
     
-    # Load the status object to determine the state
-    # of the calibration:
-    Calibration.status = FECalibrationUtils.LoadCalibrationStatus(config["path"])
-    
-    #Try to load an existing calibration:
-    try:
-        Calibration.FEChannels = FECalibrationUtils.LoadFEChannelList(os.path.join(config["path"],config["FECalibrations"]))
-        print ("Loaded existing FECalibrations %s"%config["FECalibrations"])
-    except:
-        print ("Unable to find calibrations... Failed!")
-        return False
-    
-    try:
-        print ("Attempting to load internal led files ...")
-        
-        if len(config["InternalLED"]) == 0:
-            raise ("No Files to load!")
-        elif "pedcalib" in config["InternalLED"][0]:
-            Calibration.IntNoLEDHist, Calibration.IntLEDHist =\
-            FECalibrationUtils.LoadPedCalib(os.path.join(config["DataPath"],config["InternalLED"][0]["pedcalib"]))
-        else:
-            
-            # Load the external LED list:
-            leds_dict = config["InternalLED"]
-            for d in leds_dict:
-                d["filepath"] = os.path.join(config["DataPath"],d["filename"])
-            
-            # Load the files:
-            internal_files = [d for d in leds_dict if d["led"]]
-            Calibration.IntLEDHist = TrDAQReader.TrMultiDAQRead(internal_files , "InternalLED")
-            notinternal_files = [d for d in leds_dict if not d["led"]]
-            Calibration.IntNoLEDHist = TrDAQReader.TrMultiDAQRead(notinternal_files , "InternalNoLED")
-        
-        if ( Calibration.IntNoLEDHist is None ) or ( Calibration.IntLEDHist is None):
-            print ("error loading internal led files")
-        else:
-            print ("... done loading external files")
-        
-    except:
-        raise
+    Calibration.Load(config)
+    Calibration.LoadInternalLED()
     
     ExportOnMonReference(Calibration, output_filename)
     

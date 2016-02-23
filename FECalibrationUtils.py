@@ -352,7 +352,35 @@ def ExportADCCalibrationMAUS(FEChannels, output_filename):
     print ("Saved maus calibration to: %s"%output_filename)
     
     return
+
+########################################################################
+# Function to export a bad channels list for use in the MAUS
+# enviroment
+########################################################################
+def ExportBadChannelsMAUS(FEChannels, output_filename):
+    """
+    Output an index of bad channels for MAUS, by looking
+    for the "MAUSBadChannel" Issue. The output format
+    for maus is bank, channel.
+    """
     
+    with open(output_filename,"w") as f:
+        for FEChannel in FEChannels:
+            
+            # Identify if the channel is bad.
+            bad = False
+            for Issue in FEChannel.Issues:
+                try:
+                    if Issue["Issue"] == "MAUSBadChannel":
+                        bad = True
+                except:
+                    pass
+            
+            # Write the bad channels entry:
+            if bad:
+                f.write('%i %i\n'%(FEChannel.Bank, FEChannel.BankChannel))
+                
+    # Done
     
 ########################################################################
 # Function to load a pedcalib run:
