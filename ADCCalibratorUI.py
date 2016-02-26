@@ -18,6 +18,7 @@ import ROOT
 import ADCCalibrator
 import FECalibrationUtils
 import LightYieldEstimator
+import PoissonPeakFitter
 
 class ADCUIMainFrame( ROOT.TGMainFrame ):
     
@@ -316,21 +317,25 @@ class ADCUIMainFrame( ROOT.TGMainFrame ):
         try:
             # External LED
             if (self.bg_datasel_extled.IsDown()):
+                LED=True
                 SourceHist = self.Calibration.ExtLEDHist.ProjectionY("th1d_projecty",ChannelID+1,ChannelID+1,"")
                 SourceLYE = LightYieldEstimator.LightYieldEstimator(FEChannel.LightYieldExtLED)
                 
             # External NoLED
             elif (self.bg_datasel_extnoled.IsDown()):
+                LED=False
                 SourceHist = self.Calibration.ExtNoLEDHist.ProjectionY("th1d_projecty",ChannelID+1,ChannelID+1,"")
                 SourceLYE = LightYieldEstimator.LightYieldEstimator(FEChannel.LightYieldExtNoLED)
             
             # Internal LED:    
             elif (self.bg_datasel_intled.IsDown()):
+                LED=True
                 SourceHist = self.Calibration.IntLEDHist.ProjectionY("th1d_projecty",ChannelID+1,ChannelID+1,"")
                 SourceLYE = LightYieldEstimator.LightYieldEstimator(FEChannel.LightYieldIntLED)
             
             # Internal NoLED    
             elif (self.bg_datasel_intnoled.IsDown()):
+                LED=False
                 SourceHist = self.Calibration.IntNoLEDHist.ProjectionY("th1d_projecty",ChannelID+1,ChannelID+1,"")
                 SourceLYE = LightYieldEstimator.LightYieldEstimator(FEChannel.LightYieldIntNoLED)
             
@@ -344,20 +349,28 @@ class ADCUIMainFrame( ROOT.TGMainFrame ):
         
             # Add peak markers:
             max_h = SourceHist.GetBinContent(SourceHist.GetMaximumBin())
-            
-            self.tl = []
-            for p in SourceLYE.Peaks:
-                tl = ROOT.TLine(p,0, p, max_h)
-                tl.SetLineColor(ROOT.kRed)
-                tl.Draw("l")
-                self.tl.append(tl)
                 
+            self.tl = []
             for i in range(5):
                 pos = FEChannel.ADC_Pedestal + i*FEChannel.ADC_Gain
                 tl = ROOT.TLine(pos, 0, pos, max_h)
                 tl.SetLineColor(ROOT.kBlue)
                 tl.Draw("l")
                 self.tl.append(tl)
+                
+            try:
+                self.poissfunc = PoissonPeakFitter.generatefunc\
+                (FEChannel.InternalPoissonFitResult, led=LED)
+                self.poissfunc.Draw("same")
+            except:
+                for p in SourceLYE.Peaks:
+                    tl = ROOT.TLine(p,0, p, max_h)
+                    tl.SetLineColor(ROOT.kRed)
+                    tl.Draw("l")
+                    self.tl.append(tl)
+                
+            #if "poissonfit" in FEChannel:
+                
                 
             self.Canvas.GetCanvas().Update()
         

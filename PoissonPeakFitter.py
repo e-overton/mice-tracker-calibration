@@ -245,7 +245,25 @@ def drawfits(fitter, h_dark, h_light):
     
     raw_input("test")
     
-        
+def generatefunc(fitpar, led=True):
+    """
+    Generate a TF1 loaded with appropriate fit parameters
+    """
+    
+    func = ROOT.TF1("funcpg",poissonGaus,0,255,6)
+    if led:
+        func.SetParameter(0, fitpar["light_int"])
+        func.SetParameter(1, fitpar["light_pe"])
+    else:
+        func.SetParameter(0, fitpar["dark_int"])
+        func.SetParameter(1, fitpar["dark_pe"])
+    func.SetParameter(2,fitpar["gain"])
+    func.SetParameter(3,fitpar["rms"])
+    func.SetParameter(4,fitpar["rms_inc"])
+    func.SetParameter(5,fitpar["pedestal"])
+    
+    return func
+          
 
 if __name__ == "__main__":
     
