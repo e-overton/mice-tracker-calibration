@@ -13,6 +13,10 @@ import ADCCalibrator
 import os
 import sys
 
+colours = {"None":"black", "OK":"green", "Warn":"orange", "BAD":"red"}
+statuslist = ["InternalLED","Quality","Checked by",
+                  "In CDB", "Calib ID", "BadCh ID"]
+
 def AddTextNode(doc, node, name, text, colour=None, link=None):
     """
     Make adding text nodes eaisier
@@ -51,6 +55,66 @@ def AddImage(doc, node, path, link=None):
         a.appendChild(i)
         i = a
     node.appendChild(i)
+    
+def GenerateStatusInfo(Calibration):
+    """
+    Generates a more detailed status set, for humans!
+    """
+    output = {}
+    
+    # Check Internal LED:
+    try:
+        if Calibration.status["InternalLED"] is True:
+            output["InternalLED"] = ["Found", "OK"]
+        else:
+            output["InternalLED"] = ["NotFound", "BAD"]
+    except:
+        output["InternalLED"] = ["NotFound", "BAD"]
+        
+    # Check the "Checked" Flag
+    try:
+        if Calibration.status["Checked"] is True:
+            if "Quality" in Calibration.status and \
+            Calibration.status["Quality"] is True:
+                output["Quality"] = ["Good", "OK"]
+            else:
+                output["Quality"] = ["Bad", "Bad"]
+        else:
+            output["Quality"] = ["Unchecked", "Warn"]
+    except:
+        output["Quality"] = ["Unchecked", "Warn"]
+        
+    # Check the CheckedBy flag:
+    try:
+        output["Checked by"] = [Calibration.status["CheckedBy"], "None"]
+    except:
+        output["Checked by"] = ["Unknown", "None"]
+        
+    # Check if uploaded to CDB:
+    try:
+        if Calibration.status["Uploaded"] is True:
+            output["In CDB"] = ["Yes", "OK"]
+            if "MAUSCalibID" in Calibration.status:
+                output["Calib ID"] = ["%i"%Calibration.status["MAUSCalibID"], "None"]
+            else:
+                output["Calib ID"] = ["-", "None"]
+            if "MAUSBadChID" in Calibration.status:
+                output["BadCh ID"] = ["%i"%Calibration.status["MAUSBadChID"], "None"]
+            else:
+                output["BadCh ID"] = ["-", "None"]
+        else:
+            output["In CDB"] = ["No", "None"]
+            output["Calib ID"] = ["-", "None"]
+            output["BadCh ID"] = ["-", "None"]
+    except:
+        output["In CDB"] = ["No", "None"]
+        output["Calib ID"] = ["-", "None"]
+        output["BadCh ID"] = ["-", "None"]    
+    
+    return output
+    
+
+    
 
 def CalibrationSummary (path):
     """
@@ -83,6 +147,8 @@ def CalibrationSummary (path):
     # Generate a status table ####################################################:
     AddTextNode(doc, body, "h2", "Calibration Status", "blue")
     tablestatus = doc.createElement("table")
+    
+    """
     status_list = ["InternalLED", "Checked", "CheckedBy", 
                    "Quality", "PostProcessed", "Uploaded"]
     
@@ -106,6 +172,20 @@ def CalibrationSummary (path):
         body.appendChild(tablestatus)
     except:
         AddTextNode(doc, body, "p", "Error generating status table", colour="red")
+    """
+    statusinfo = GenerateStatusInfo(Calibration)    
+    for status in statuslist:
+        tr = doc.createElement("tr")
+        AddTextNode(doc, tr, "th", status)
+        try:
+            thisinfo = statusinfo[status]
+            AddTextNode(doc, tr, "th", thisinfo[0],colours[thisinfo[1]])
+        except:
+            AddTextNode(doc, tr, "th", "unknown","orange")
+        tablestatus.appendChild(tr)
+        
+    body.appendChild(tablestatus)
+    
     
     # Generate Plots ####################################################:
     if os.path.isfile(os.path.join(path,"Noise_US.png")):
@@ -200,14 +280,14 @@ def GenerateIndexSummart(rootpath):
     AddTextNode(doc, body, "h1", "Calibration Index")
     
     # Status fields to check:
-    status_list = ["InternalLED", "Checked", "CheckedBy", 
-                   "Quality", "PostProcessed", "Uploaded"]
+    #status_list = ["InternalLED", "Checked", "CheckedBy", 
+    #               "Quality", "PostProcessed", "Uploaded"]
     
     # Generate master table:
     mastertable = doc.createElement("table")
     tr = doc.createElement("tr")
     AddTextNode(doc, tr, "th", "Calibration")
-    for status in status_list:
+    for status in statuslist:
         AddTextNode(doc, tr, "th", status)
     mastertable.appendChild(tr)
    
@@ -225,6 +305,16 @@ def GenerateIndexSummart(rootpath):
         except:
             AddTextNode(doc, tr, "th", "Error Processing", colour="red")
         else:
+            statusinfo = GenerateStatusInfo(Calibration)    
+            for status in statuslist:
+                try:
+                    thisinfo = statusinfo[status]
+                    AddTextNode(doc, tr, "th", thisinfo[0],colours[thisinfo[1]])
+                except:
+                    AddTextNode(doc, tr, "th", "unknown","orange")
+            
+            
+            """        
             # Process status string:
             for status in status_list:
                 if status in Calibration.status:
@@ -239,7 +329,7 @@ def GenerateIndexSummart(rootpath):
                             AddTextNode(doc, tr, "th", "ParserError", colour="orange")
                 else:
                     AddTextNode(doc, tr, "th", "Unknown", colour="orange")
-        
+            """    
         # Append to table
         mastertable.appendChild(tr)
     

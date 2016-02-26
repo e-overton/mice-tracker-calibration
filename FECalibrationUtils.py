@@ -127,6 +127,10 @@ def UpdateTrackerMapping(FEChannels, TrackerMapping):
             FEChan.PlaneChannel = Mapping["PlaneChannel"]
         except KeyError:
             #print "Skipping channel excluded from tracker"
+            FEChan.Tracker = 0
+            FEChan.Station = 0
+            FEChan.Plane = 0
+            FEChan.PlaneChannel = 0
             FEChan.InTracker = 0
             errors += 1
         else:

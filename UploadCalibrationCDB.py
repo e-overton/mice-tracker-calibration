@@ -187,7 +187,7 @@ def UploadCDB(calibpath, timestamp=None):
     # this was uploaded.
     if UploadCalibrationOK or UploadBadChOK:
         Calibration.status = FECalibrationUtils.LoadCalibrationStatus(config["path"])
-        Calibration.status["CDBUpload"] = True
+        Calibration.status["Uploaded"] = True
         if _CALI_ID > 0:
             Calibration.status["MAUSCalibID"] = _CALI_ID
         if _BAD_ID > 0:
