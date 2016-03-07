@@ -295,6 +295,15 @@ def GenerateIndexSummart(rootpath):
     folder_list = [o for o in os.listdir(rootpath) if os.path.isdir(os.path.join(rootpath,o))]
     for folder in sorted(folder_list):
         
+        # Check we are not going to follow a sym link - if we
+        # read a link, then continue the loop..
+        try:
+            os.readlink(os.path.join(rootpath,folder))
+        except:
+            pass
+        else:
+            continue
+        
         # Generate new line in table:
         tr = doc.createElement("tr") 
         AddTextNode(doc, tr, "th", folder, link="%s/status.xhtml"%folder)
