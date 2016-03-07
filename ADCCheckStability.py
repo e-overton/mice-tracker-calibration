@@ -46,15 +46,15 @@ def ADCCheckStability(OldCalibration, NewCalibration):
           
     # Distribution Checks:
     status_dy = (h_dy_res.GetRMS() < 0.01) and (abs(h_dy_res.GetMean()) < 0.01)
-    status_ly = (h_ly_res.GetRMS() < 0.02) and (abs(h_ly_res.GetMean()) < 0.02) 
+    status_ly = (h_ly_res.GetRMS() < 0.04) and (abs(h_ly_res.GetMean()) < 0.01) 
     
     # Outlier Checks (more than 32 channels ourside specific range):
     if (h_dy_res.GetEntries() - h_dy_res.Integral(h_dy_res.FindBin(-0.05), 
                                                   h_dy_res.FindBin(+0.05))) > 32:
         status_dy = False
 
-    if (h_ly_res.GetEntries() - h_ly_res.Integral(h_ly_res.FindBin(-0.08), 
-                                                  h_ly_res.FindBin(+0.08))) > 32:
+    if (h_ly_res.GetEntries() - h_ly_res.Integral(h_ly_res.FindBin(-0.15), 
+                                                  h_ly_res.FindBin(+0.15))) > 32:
         status_ly = False
     
     
